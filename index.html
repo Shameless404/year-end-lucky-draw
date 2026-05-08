@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>年会抽奖系统</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    color: #fff;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    overscroll-behavior: none;
+    padding: 20px 20px 15px;
+}
+
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 5px;
+    flex-shrink: 0;
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    letter-spacing: 2px;
+    animation: fadeInDown 0.8s ease;
+    transition: font-size 0.3s ease, margin 0.3s ease;
+}
+
+.subtitle {
+    font-size: 1em;
+    opacity: 0.9;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+    animation: fadeInUp 0.8s ease 0.2s both;
+}
+
+#setupPanel {
+    flex-shrink: 0;
+    padding: 6px 0 4px;
+    animation: slideInUp 0.6s ease;
+}
+
+.prize-row {
+    max-width: 520px;
+    margin: 0 auto 10px;
+}
+
+.prize-row input {
+    width: 100%;
+    margin: 0;
+    font-size: 16px;
+    padding: 14px 18px;
+    text-align: center;
+    border-radius: 14px;
+}
+
+#nameBox {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    padding: 12px 18px;
+    border-radius: 16px;
+    max-width: 520px;
+    margin: 0 auto;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+#nameBox:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+}
+
+#nameBox h3 {
+    font-size: 1em;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.name-input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.name-input-row input {
+    flex: 1;
+    margin: 0;
+}
+
+.name-input-row button {
+    margin: 0;
+    white-space: nowrap;
+}
+
+#nameList {
+    max-height: 130px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.action-row {
+    text-align: center;
+    margin-top: 8px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.action-row button {
+    font-size: 12px;
+    padding: 7px 16px;
+    margin: 0;
+}
+
+input {
+    width: 90%;
+    padding: 10px 14px;
+    margin: 6px auto;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 13px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    display: block;
+}
+
+input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+button {
+    padding: 10px 20px;
+    margin: 6px 4px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 14px;
+    margin: 5px 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    border-left: 3px solid #f093fb;
+    transition: all 0.3s ease;
+    animation: slideInLeft 0.4s ease;
+}
+
+.list-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(5px);
+}
+
+.list-item span:first-child {
+    flex: 1;
+    text-align: left;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.del {
+    cursor: pointer;
+    opacity: 0.6;
+    font-size: 1.2em;
+    transition: all 0.3s ease;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.del:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg) scale(1.1);
+}
+
+#display {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0;
+    perspective: 1200px;
+}
+
+#displayContent {
+    position: relative;
+    z-index: 2;
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    color: #fff;
+    min-width: 300px;
+    max-width: 90vw;
+    text-align: center;
+    transition: none;
+    will-change: transform, filter, text-shadow, color;
+}
+
+#currentPrize {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffeb3b;
+    padding: 6px 28px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 235, 59, 0.3);
+    text-shadow: 0 0 20px rgba(255, 235, 59, 0.6);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 0 30px rgba(255, 235, 59, 0.15);
+}
+
+#currentPrize.show {
+    opacity: 1;
+}
+
+#displayContent.roll-mode {
+    overflow: hidden;
+    position: relative;
+}
+
+.roll-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    will-change: transform;
+}
+
+.roll-item {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 900;
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.roll-highlight {
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    top: 50%;
+    height: 68px;
+    transform: translateY(-50%);
+    border-radius: 16px;
+    background: rgba(255, 215, 0, 0.06);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.12), inset 0 0 30px rgba(255, 215, 0, 0.05);
+    pointer-events: none;
+    z-index: 3;
+}
+
+.roll-indicator {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 36px;
+    z-index: 10;
+    pointer-events: none;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255,215,0,0.8), 0 0 40px rgba(255,215,0,0.4);
+    animation: indicatorPulse 0.6s ease-in-out infinite;
+    line-height: 1;
+}
+
+.roll-item-winner {
+    color: #ffd700 !important;
+    text-shadow: 0 0 30px rgba(255,215,0,0.8), 0 0 80px rgba(255,215,0,0.4) !important;
+    transform: scale(1.25);
+    transition: transform 0.4s ease, color 0.4s ease, text-shadow 0.4s ease;
+}
+
+#displayBg {
+    position: absolute;
+    width: 500px;
+    height: 150px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 30px;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 235, 59, 0.4), rgba(102, 126, 234, 0.2), transparent 70%);
+    filter: blur(40px);
+    z-index: -1;
+    animation: bgPulse 0.6s ease-in-out;
+    pointer-events: none;
+}
+
+#displayGlow1 {
+    position: absolute;
+    width: 550px;
+    height: 170px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 2px solid rgba(240, 147, 251, 0.3);
+    box-shadow: 0 0 40px rgba(102, 126, 234, 0.4), inset 0 0 40px rgba(240, 147, 251, 0.2);
+    animation: glowRotate 4s linear infinite;
+    z-index: -1;
+    pointer-events: none;
+}
+
+#displayGlow2 {
+    position: absolute;
+    width: 600px;
+    height: 200px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px solid rgba(245, 87, 108, 0.2);
+    box-shadow: 0 0 60px rgba(240, 147, 251, 0.2);
+    animation: glowRotate 6s linear infinite reverse;
+    z-index: -2;
+    pointer-events: none;
+}
+
+@keyframes bgPulse {
+    0% {
+        filter: blur(20px);
+        opacity: 0.5;
+    }
+    50% {
+        filter: blur(50px);
+        opacity: 1;
+    }
+    100% {
+        filter: blur(30px);
+        opacity: 0.8;
+    }
+}
+
+@keyframes glowRotate {
+    0% {
+        transform: translate(-50%, -50%) rotateZ(0deg);
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) rotateZ(360deg);
+        opacity: 0.6;
+    }
+}
+
+.button-group {
+    text-align: center;
+    flex-shrink: 0;
+    padding: 8px 0 14px;
+    animation: slideInUp 0.8s ease 0.2s both;
+}
+
+#drawBtn {
+    padding: 16px 56px;
+    font-size: 20px;
+    min-width: 220px;
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 全屏沉浸抽奖模式 */
+body.drawing #setupPanel {
+    display: none !important;
+}
+
+body.drawing h1 {
+    font-size: 1.5em;
+    margin-bottom: 3px;
+    opacity: 0.6;
+}
+
+body.drawing .subtitle {
+    display: none;
+}
+
+body.drawing #display {
+    flex: 1;
+    height: auto;
+    margin: 5px auto;
+}
+
+body.drawing #displayContent.roll-mode {
+    height: 420px;
+}
+
+body.drawing .roll-item {
+    height: 68px;
+    font-size: 34px;
+}
+
+body.drawing .button-group {
+    flex-shrink: 0;
+    padding: 4px 0 10px;
+}
+
+body.drawing #displayBg {
+    width: 750px;
+    height: 320px;
+    animation: bgPulse 0.4s ease-in-out infinite alternate;
+}
+
+body.drawing #displayGlow1 {
+    width: 800px;
+    height: 300px;
+    animation: glowRotate 3s linear infinite;
+}
+
+body.drawing #displayGlow2 {
+    width: 880px;
+    height: 340px;
+    animation: glowRotate 4s linear infinite reverse;
+}
+
+.confetti {
+    position: fixed;
+    pointer-events: none;
+    z-index: 2500;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    position: relative;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95));
+    border-radius: 25px;
+    padding: 40px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 70vh;
+    overflow-y: auto;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.4);
+    animation: slideInUp 0.4s ease;
+}
+
+.modal-content h2 {
+    font-size: 2em;
+    margin-bottom: 25px;
+    text-align: center;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.record-item {
+    background: rgba(255, 255, 255, 0.12);
+    padding: 16px 20px;
+    margin: 12px 0;
+    border-radius: 12px;
+    border-left: 4px solid #ffeb3b;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: slideInLeft 0.4s ease;
+    transition: all 0.3s ease;
+}
+
+.record-item:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateX(5px);
+}
+
+.record-item .rank {
+    font-weight: 900;
+    font-size: 1.3em;
+    color: #ffeb3b;
+    width: 40px;
+    text-align: center;
+}
+
+.record-item .winner-info {
+    flex: 1;
+    text-align: left;
+    margin: 0 15px;
+}
+
+.record-item .winner-name {
+    font-weight: 700;
+    font-size: 1.1em;
+}
+
+.record-item .prize-name {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin-top: 4px;
+}
+
+.record-item .time {
+    font-size: 0.85em;
+    opacity: 0.6;
+}
+
+.modal-close {
+    position: absolute;
+    right: 25px;
+    top: 20px;
+    font-size: 28px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.modal-close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.empty-record {
+    text-align: center;
+    padding: 40px 20px;
+    opacity: 0.8;
+    font-size: 1.1em;
+}
+
+@keyframes indicatorPulse {
+    0%, 100% {
+        opacity: 0.7;
+        transform: translateY(-50%) translateX(0);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-50%) translateX(-6px);
+    }
+}
+
+.toast {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3000;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+.winner-overlay {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.winner-overlay.show {
+    display: flex;
+}
+
+.winner-close {
+    position: absolute;
+    right: 25px;
+    top: 20px;
+    font-size: 36px;
+    cursor: pointer;
+    opacity: 0.7;
+    color: #fff;
+    transition: all 0.3s ease;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    z-index: 10;
+    line-height: 1;
+}
+
+.winner-close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.winner-content {
+    text-align: center;
+    color: #fff;
+}
+
+.winner-label {
+    font-size: 28px;
+    margin-bottom: 20px;
+    opacity: 0.9;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.winner-name {
+    font-size: 72px;
+    font-weight: 900;
+    text-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+    color: #ffeb3b;
+    margin-bottom: 15px;
+}
+
+.winner-prize {
+    font-size: 28px;
+    opacity: 0.9;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.confirm-dialog {
+    display: none;
+    position: fixed;
+    z-index: 4000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-dialog.show {
+    display: flex;
+}
+
+.confirm-content {
+    background: linear-gradient(135deg, rgba(60, 60, 100, 0.97), rgba(40, 40, 70, 0.97));
+    border-radius: 16px;
+    padding: 30px 36px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: slideInUp 0.3s ease;
+}
+
+.confirm-content p {
+    margin-bottom: 20px;
+    font-size: 16px;
+    color: #fff;
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.confirm-buttons button {
+    min-width: 80px;
+    padding: 10px 24px;
+    margin: 0;
+}
+
+.confirm-buttons button:first-child {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+</style>
+</head>
+
+<body>
+
+<h1>✨ 年会抽奖系统 ✨</h1>
+<p class="subtitle">庆祝年会，赢取大奖</p>
+
+<div id="display">
+    <div id="displayGlow1"></div>
+    <div id="displayGlow2"></div>
+    <div id="displayBg"></div>
+    <div id="currentPrize"></div>
+    <div id="displayContent"></div>
+</div>
+
+<div id="setupPanel">
+
+<div class="prize-row">
+<input id="prizeInput" placeholder="🎁 输入本轮奖品" onkeypress="if(event.key==='Enter') toggleDraw()" oninput="render()">
+</div>
+
+<div id="nameBox">
+<h3>👥 人员名单</h3>
+<div class="name-input-row">
+<input id="nameInput" placeholder="输入参与者姓名" onkeypress="if(event.key==='Enter') addName()">
+<button onclick="addName()">+ 添加</button>
+</div>
+<div id="nameList"></div>
+</div>
+
+<div class="action-row">
+<button onclick="showRecords()" style="background: linear-gradient(135deg, #f5576c, #f093fb);">📋 记录</button>
+<button onclick="mockData()" style="background: linear-gradient(135deg, #43e97b, #38f9d7); color: #333;">⚡ 模拟</button>
+</div>
+
+</div>
+
+<div class="button-group">
+<button id="drawBtn" onclick="toggleDraw()">🎉 开始抽奖</button>
+</div>
+
+<div id="recordModal" class="modal">
+<div class="modal-content">
+<span class="modal-close" onclick="closeRecords()">&times;</span>
+<h2>🏆 抽取记录</h2>
+<div id="recordList"></div>
+</div>
+</div>
+
+<div id="winnerOverlay" class="winner-overlay">
+    <span class="winner-close" onclick="closeWinner()">&times;</span>
+    <div class="winner-content">
+        <div class="winner-label">🏆 恭喜中奖 🏆</div>
+        <div class="winner-name" id="winnerName"></div>
+        <div class="winner-prize" id="winnerPrize"></div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div id="confirmDialog" class="confirm-dialog">
+    <div class="confirm-content">
+        <p id="confirmMsg"></p>
+        <div class="confirm-buttons">
+            <button onclick="confirmYes()">确定</button>
+            <button onclick="confirmNo()">取消</button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+// 初始数据快照
+let initNames = [];
+
+let names = [];
+let records = [];
+let currentPrizeName = "";
+
+let running = false;
+let stopping = false;
+let currentWinner = "";
+
+let scrollRaf = null;
+let stopDelayTimer = null;
+let confettiTimers = [];
+
+let confirmCallback = null;
+let confettiRunning = false;
+
+function showConfirm(msg, cb){
+    document.getElementById("confirmMsg").textContent = msg;
+    confirmCallback = cb;
+    document.getElementById("confirmDialog").classList.add("show");
+}
+
+function confirmYes(){
+    document.getElementById("confirmDialog").classList.remove("show");
+    if(confirmCallback) confirmCallback();
+    confirmCallback = null;
+}
+
+function confirmNo(){
+    document.getElementById("confirmDialog").classList.remove("show");
+    confirmCallback = null;
+}
+
+function showToast(msg){
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2000);
+}
+
+function closeWinner(){
+    document.getElementById("winnerOverlay").classList.remove("show");
+    document.body.classList.remove("drawing");
+    clearConfetti();
+}
+
+function toggleDraw(){
+if(running) stopDraw();
+else startDraw();
+}
+
+function addName(){
+let v = document.getElementById("nameInput").value.trim();
+if(!v){
+showToast("请输入参与者姓名");
+return;
+}
+if(names.includes(v)){
+showToast("该名字已添加");
+return;
+}
+names.push(v);
+if(!initNames.includes(v)) initNames.push(v);
+document.getElementById("nameInput").value="";
+document.getElementById("nameInput").focus();
+render();
+}
+
+function delName(i){
+const name = names[i];
+showConfirm(`确定要删除 ${name} 吗？`, () => {
+let idx = initNames.indexOf(name);
+if(idx!==-1) initNames.splice(idx,1);
+names.splice(i,1);
+render();
+});
+}
+
+function render(){
+
+document.getElementById("nameList").innerHTML =
+names.map((n,i)=>
+`<div class="list-item">
+<span>${i+1}. ${n}</span>
+<span class="del" onclick="delName(${i})">✕</span>
+</div>`
+).join("");
+
+if(running) return;
+const dc = document.getElementById("displayContent");
+if(dc.classList.contains("roll-mode")) return;
+const prize = document.getElementById("prizeInput").value.trim();
+if(names.length === 0 && !prize){
+dc.innerHTML = '<span style="font-size:20px;opacity:0.35">添加参与者和奖品</span>';
+} else {
+let parts = [];
+if(names.length) parts.push(`<span style="font-size:28px">👥 ${names.length}</span>`);
+if(prize) parts.push(`<span style="font-size:18px;opacity:0.5">🎁 ${prize}</span>`);
+dc.innerHTML = parts.join(' <span style="font-size:20px;opacity:0.3">|</span> ');
+}
+}
+
+function spawnConfettiPiece(){
+const el = document.createElement("div");
+el.className = "confetti";
+el.style.left = Math.random() * window.innerWidth + "px";
+el.style.top = "-10px";
+const size = Math.random() * 8 + 4;
+el.style.width = size + "px";
+el.style.height = (Math.random() > 0.5 ? size : size * 0.6) + "px";
+el.style.background = ["#f093fb","#f5576c","#667eea","#764ba2","#ffeb3b","#ffd700","#ff6b6b","#00d2d3"][Math.floor(Math.random() * 8)];
+el.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+const dur = Math.random() * 3 + 2;
+el.style.animation = `fall ${dur}s linear`;
+document.body.appendChild(el);
+setTimeout(() => el.remove(), dur * 1000);
+}
+
+function createConfetti(){
+confettiRunning = true;
+confettiTimers = [];
+
+function schedule(){
+if(!confettiRunning) return;
+for(let n = 0; n < 3; n++){
+spawnConfettiPiece();
+}
+const id = setTimeout(schedule, Math.random() * 120 + 60);
+if(!confettiRunning) { clearTimeout(id); return; }
+confettiTimers.push(id);
+}
+
+// 初始爆发
+for(let i = 0; i < 60; i++){
+const id = setTimeout(spawnConfettiPiece, i * 25);
+confettiTimers.push(id);
+}
+
+// 持续生成
+const id = setTimeout(schedule, 600);
+confettiTimers.push(id);
+}
+
+function clearConfetti(){
+confettiRunning = false;
+confettiTimers.forEach(id => clearTimeout(id));
+confettiTimers = [];
+document.querySelectorAll(".confetti").forEach(el => el.remove());
+}
+
+const style = document.createElement("style");
+style.textContent = `
+@keyframes fall {
+    to {
+        transform: translateY(${window.innerHeight + 100}px) rotate(360deg);
+        opacity: 0;
+    }
+}
+`;
+document.head.appendChild(style);
+
+function startDraw(){
+
+if(running) return;
+if(names.length===0){
+showToast("请先添加参与者");
+return;
+}
+
+currentPrizeName = document.getElementById("prizeInput").value.trim();
+if(!currentPrizeName){
+showToast("请输入奖品名称");
+return;
+}
+
+// 清理上一轮的残留
+if(scrollRaf) { cancelAnimationFrame(scrollRaf); scrollRaf = null; }
+document.getElementById("winnerOverlay").classList.remove("show");
+clearConfetti();
+
+running = true;
+stopping = false;
+currentWinner = "";
+
+document.body.classList.add("drawing");
+
+document.getElementById("drawBtn").disabled = false;
+document.getElementById("drawBtn").innerText="⏹ 停止";
+if(stopDelayTimer) { clearTimeout(stopDelayTimer); stopDelayTimer = null; }
+
+	const dc = document.getElementById("displayContent");
+	// 构建滚筒条
+	let html = '<div class="roll-strip" id="rollStrip">';
+	for(let r = 0; r < 15; r++){
+	for(let i = 0; i < names.length; i++){
+	html += `<div class="roll-item">${names[i]}</div>`;
+	}
+	}
+html += '</div>';
+dc.innerHTML = html;
+dc.classList.add("roll-mode");
+
+	// 添加箭头指示器
+	const indicator = document.createElement("div");
+	indicator.className = "roll-indicator";
+	indicator.textContent = "◀";
+	dc.appendChild(indicator);
+
+	// 中间高亮条
+	const hl = document.createElement("div");
+	hl.className = "roll-highlight";
+	dc.appendChild(hl);
+
+	const strip = document.getElementById("rollStrip");
+	const rollItems = strip.children;
+	let offset = 0;
+	const itemH = dc.querySelector('.roll-item').offsetHeight;
+	const viewportH = dc.offsetHeight;
+	const hlRect = hl.getBoundingClientRect();
+	const dcRect = dc.getBoundingClientRect();
+	const centerOffset = hlRect.top + hlRect.height / 2 - dcRect.top;
+	const setH = names.length * itemH;
+	let speed = 36;
+
+document.getElementById("currentPrize").textContent = `🎁 本轮奖品：${currentPrizeName}`;
+document.getElementById("currentPrize").classList.add("show");
+
+function animate(){
+if(!running) return;
+
+if(names.length === 0) { reset(); return; }
+
+offset += speed;
+strip.style.transform = `translateY(-${offset}px)`;
+
+// 先回绕确保 offset 在有效范围内
+if(setH > 0 && offset > setH * 14){
+offset -= setH * 14;
+strip.style.transform = `translateY(-${offset}px)`;
+}
+
+// 景深效果：越靠近中间越大越亮（用名字视觉中心算距离）
+const centerIdx = (offset + centerOffset - itemH / 2) / itemH;
+const firstV = Math.max(0, Math.floor(offset / itemH));
+const lastV = Math.min(rollItems.length - 1, Math.ceil((offset + viewportH) / itemH));
+for(let i = firstV; i <= lastV; i++){
+const item = rollItems[i];
+if(!item) continue;
+const dist = Math.abs(i - centerIdx);
+	const s = Math.max(0.4, 1.4 - dist * 0.4);
+	const o = Math.max(0.2, 1 - dist * 0.3);
+item.style.transform = `scale(${s})`;
+item.style.opacity = o;
+}
+
+if(stopping){
+speed *= 0.975;
+if(speed <= 0.1){
+stopping = false;
+const winIdx = Math.round((offset + centerOffset - itemH / 2) / itemH) % rollItems.length;
+currentWinner = names[winIdx % names.length];
+// 自然停止，不拉动对齐，谁在框里谁中奖
+const winItem = rollItems[winIdx];
+if(winItem){
+winItem.style.transform = '';
+winItem.style.opacity = '';
+winItem.classList.add('roll-item-winner');
+}
+stopDelayTimer = setTimeout(() => finishDraw(), 600);
+return;
+}
+}
+
+scrollRaf = requestAnimationFrame(animate);
+}
+
+scrollRaf = requestAnimationFrame(animate);
+}
+
+function stopDraw(){
+
+if(!running || stopping) return;
+stopping = true;
+document.getElementById("drawBtn").disabled = true;
+document.getElementById("drawBtn").innerText="⏹ 停…";
+}
+
+function finishDraw(){
+
+	running = false;
+	stopping = false;
+	if(stopDelayTimer) { clearTimeout(stopDelayTimer); stopDelayTimer = null; }
+
+	const cp = document.getElementById("currentPrize");
+	cp.classList.remove("show");
+	cp.textContent = "";
+
+	// 移除指示器和高亮条
+	const ind = document.querySelector('.roll-indicator');
+	if(ind) ind.remove();
+	const hl = document.querySelector('.roll-highlight');
+	if(hl) hl.remove();
+
+// 恢复 displayContent
+const dc = document.getElementById("displayContent");
+dc.classList.remove("roll-mode");
+dc.innerHTML = "";
+
+	document.getElementById("drawBtn").disabled = false;
+	document.getElementById("drawBtn").innerText="🎉 开始抽奖";
+
+	let winner = currentWinner;
+	if(!winner) { document.body.classList.remove("drawing"); reset(); return; }
+
+let nIndex = names.indexOf(winner);
+if(nIndex===-1){ document.body.classList.remove("drawing"); render(); return; }
+
+names.splice(nIndex,1);
+
+records.push({
+winner: winner,
+prize: currentPrizeName,
+time: new Date().toLocaleTimeString()
+});
+
+// 全屏中奖弹窗
+document.getElementById("winnerName").textContent = winner;
+document.getElementById("winnerPrize").textContent = `获 得 ${currentPrizeName}`;
+document.getElementById("winnerOverlay").classList.add("show");
+createConfetti();
+
+render();
+}
+
+function reset(){
+
+if(scrollRaf) { cancelAnimationFrame(scrollRaf); scrollRaf = null; }
+if(stopDelayTimer) { clearTimeout(stopDelayTimer); stopDelayTimer = null; }
+	running = false;
+	stopping = false;
+	currentWinner = "";
+	currentPrizeName = "";
+
+	const cp = document.getElementById("currentPrize");
+	cp.classList.remove("show");
+	cp.textContent = "";
+
+	document.getElementById("prizeInput").value = "";
+
+	document.getElementById("drawBtn").disabled = false;
+document.getElementById("drawBtn").innerText="🎉 开始抽奖";
+
+	const dc = document.getElementById("displayContent");
+	dc.classList.remove("roll-mode");
+	dc.innerHTML = "";
+
+	// 清除箭头指示器和高亮条
+	const ind = document.querySelector('.roll-indicator');
+	if(ind) ind.remove();
+	const hl = document.querySelector('.roll-highlight');
+	if(hl) hl.remove();
+
+	document.body.classList.remove("drawing");
+
+document.getElementById("winnerOverlay").classList.remove("show");
+clearConfetti();
+
+names = [...initNames];
+records = [];
+
+render();
+}
+
+function mockData(){
+
+if(running) return;
+
+const mockNames = ["张三","李四","王五","赵六","陈七","周八","吴九","郑十","孙十一","钱十二"];
+for(let i = 0; i < mockNames.length; i++){
+const name = mockNames[i];
+if(!names.includes(name)){
+names.push(name);
+if(!initNames.includes(name)) initNames.push(name);
+}
+}
+
+document.getElementById("prizeInput").value = "📱 iPhone 16 Pro";
+
+render();
+
+  // 按钮闪烁反馈
+  const btns = document.querySelectorAll("button");
+  const btn = [...btns].find(b => b.textContent.includes("模拟"));
+  if(btn) {
+    const orig = btn.innerText;
+    btn.innerText = "✅ 已生成";
+    btn.style.transform = "scale(0.95)";
+    setTimeout(() => {
+      btn.innerText = orig;
+      btn.style.transform = "";
+    }, 1200);
+  }
+}
+
+function showRecords(){
+let modal = document.getElementById("recordModal");
+let recordList = document.getElementById("recordList");
+
+if(records.length === 0){
+recordList.innerHTML = `<div class="empty-record">📭 暂无抽取记录</div>`;
+}else{
+recordList.innerHTML = records.map((r, i) => `
+<div class="record-item">
+<div class="rank">#${i+1}</div>
+<div class="winner-info">
+<div class="winner-name">🎊 ${r.winner}</div>
+<div class="prize-name">🎁 ${r.prize}</div>
+</div>
+<div class="time">${r.time}</div>
+</div>
+`).join("");
+}
+
+modal.classList.add("show");
+}
+
+function closeRecords(){
+let modal = document.getElementById("recordModal");
+modal.classList.remove("show");
+}
+
+window.onclick = function(event){
+let modal = document.getElementById("recordModal");
+if(event.target == modal){
+modal.classList.remove("show");
+}
+let confirm = document.getElementById("confirmDialog");
+if(event.target == confirm){
+confirmNo();
+}
+}
+
+render();
+
+</script>
+
+</body>
+</html>
