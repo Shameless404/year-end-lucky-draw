@@ -1262,17 +1262,20 @@ function showConfirm(msg, cb){
     document.getElementById("confirmDialog").classList.add("show");
 }
 
+// 确认对话框：确定
 function confirmYes(){
     document.getElementById("confirmDialog").classList.remove("show");
     if(confirmCallback) confirmCallback();
     confirmCallback = null;
 }
 
+// 确认对话框：取消
 function confirmNo(){
     document.getElementById("confirmDialog").classList.remove("show");
     confirmCallback = null;
 }
 
+// 顶部 Toast 提示（2秒自动消失）
 function showToast(msg){
     const t = document.getElementById("toast");
     t.textContent = msg;
@@ -1280,18 +1283,21 @@ function showToast(msg){
     setTimeout(() => t.classList.remove("show"), 2000);
 }
 
+// 关闭中奖弹窗
 function closeWinner(){
     document.getElementById("winnerOverlay").classList.remove("show");
     document.body.classList.remove("drawing");
     clearConfetti();
 }
 
+// 切换抽奖状态（开始/停止）
 function toggleDraw(){
 if(running) stopDraw();
 else startDraw();
 }
 
 // ========== 名单管理 ==========
+// 添加一位参与者
 function addName(){
 let v = document.getElementById("nameInput").value.trim();
 if(!v){
@@ -1311,6 +1317,7 @@ saveState();
 updateUndoBtn();
 }
 
+// 从名单删除指定人
 function delName(i){
 const name = names[i];
 showConfirm(`确定要删除 ${name} 吗？`, () => {
@@ -1323,6 +1330,7 @@ updateUndoBtn();
 });
 }
 
+// 渲染界面（名单列表 + 显示区）
 function render(){
 document.getElementById("nameList").innerHTML =
 names.map((n,i)=>
@@ -1366,6 +1374,7 @@ function createConfetti(){
 confettiRunning = true;
 confettiTimers = [];
 
+// 彩带定时调度
 function schedule(){
 if(!confettiRunning) return;
 for(let n = 0; n < 3; n++) spawnConfettiPiece();
@@ -1382,6 +1391,7 @@ confettiTimers.push(id);
 confettiTimers.push(setTimeout(schedule, 600));
 }
 
+// 清除彩带
 function clearConfetti(){
 confettiRunning = false;
 confettiTimers.forEach(id => clearTimeout(id));
@@ -1400,6 +1410,7 @@ const canvas = document.getElementById("particleCanvas");
 const ctx = canvas.getContext("2d");
 let w, h;
 
+// Canvas resize
 function resize(){
 w = canvas.width = window.innerWidth;
 h = canvas.height = window.innerHeight;
@@ -1420,6 +1431,7 @@ o: Math.random() * 0.4 + 0.1
 });
 }
 
+// 每帧绘制粒子
 function draw(){
 ctx.clearRect(0, 0, w, h);
 for(const p of particles){
@@ -1585,6 +1597,7 @@ document.getElementById("drawBtn").disabled = true;
 document.getElementById("drawBtn").innerText = seqState ? "⏳ 自动抽取中" : "⏹ 停…";
 }
 
+// 自动停止（由定时器触发）
 function autoStop(){
 if(running && !stopping){
 stopping = true;
@@ -1868,10 +1881,12 @@ function showImport(){
   setTimeout(() => document.getElementById("importText").focus(), 200);
 }
 
+// 关闭导入弹窗
 function closeImport(){
   document.getElementById("importModal").classList.remove("show");
 }
 
+// 执行导入（解析文本、去重、追加到名单）
 function submitImport(){
   const text = document.getElementById("importText").value.trim();
   if(!text){ showToast("请输入或粘贴要导入的名单"); return; }
@@ -1895,6 +1910,7 @@ function submitImport(){
   updateUndoBtn();
 }
 
+// 处理上传文件（读为文本填入 textarea）
 function handleImportFile(event){
   const file = event.target.files[0];
   if(!file) return;
@@ -1970,6 +1986,7 @@ return `
 modal.classList.add("show");
 }
 
+// 关闭记录弹窗
 function closeRecords(){
 let modal = document.getElementById("recordModal");
 modal.classList.remove("show");
