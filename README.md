@@ -71,5 +71,6 @@ open index.html
 ai-年会抽奖/
 ├── index.html    ← 完整应用（含全部样式和脚本）
 ├── README.md     ← 本文件
+├── assets/       ← 截图等静态资源
 └── .gitignore
 ```
