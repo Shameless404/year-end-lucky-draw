@@ -1193,31 +1193,65 @@ body.drawing #displayGlow2 {
 </div>
 
 <script>
+/*
+ * ================================================
+ *  年 会 抽 奖 系 统  ·  纯  H T M L
+ *  说 明：本文件为单页应用，包含全部样式与逻辑
+ *        浏览器直接打开即可运行，无需任何依赖
+ * ================================================
+ */
+
+// 用于存取数据的 localStorage 键名
 const STORAGE_KEY = 'lottery_data';
 
-// ========== 数据状态 ==========
+// ========== 核心数据状态 ==========
+// initNames：初始化时的名单快照，调用 reset 时恢复到这份名单
+// names：当前操作的名单，每抽走一人从中移除
+// records：历史抽奖记录，每条包含中奖者、奖品、时间
+// currentPrizeName：本轮正在抽取的奖品名称
 let initNames = [];
 let names = [];
 let records = [];
 let currentPrizeName = "";
 
+// running：是否正在抽奖（滚轮转动中）
+// stopping：是否正在减速停止（用户已点停止，等待滚轮停稳）
+// currentWinner：当前轮滚轮停止时选中的中奖者姓名
 let running = false;
 let stopping = false;
 let currentWinner = "";
 
+// scrollRaf：滚轮动画的 requestAnimationFrame 句柄，用于取消动画
+// stopDelayTimer：停止后延迟执行 finishDraw 的定时器
+// confettiTimers：彩带特效的所有定时器句柄集合
+// particleRaf：粒子背景的 requestAnimationFrame 句柄
 let scrollRaf = null;
 let stopDelayTimer = null;
 let confettiTimers = [];
 let particleRaf = null;
 
+// confirmCallback：确认弹窗的回调函数，确定后执行
+// confettiRunning：彩带是否正在运行，用于控制调度循环
 let confirmCallback = null;
 let confettiRunning = false;
 
-let lastDraw = null;   // 上次抽奖结果（用于撤销）
-let seqState = null;     // 多人顺序抽取状态
+// lastDraw：上一次抽奖的完整信息，用于撤销操作恢复数据
+// seqState：多人顺序抽取模式的状态对象
+//   - drawCount：本轮总共要抽取的人数
+//   - selected：已抽取到的中奖者名单（逐个追加）
+// autoStopTimer：多人模式中自动停止的定时器句柄
+let lastDraw = null;
+let seqState = null;
 let autoStopTimer = null;
 
-// ========== localStorage 持久化 ==========
+// ========== 本地数据持久化 ==========
+
+/**
+ * 将当前所有数据保存到浏览器本地存储中
+ * 保存内容：名单、初始化快照、历史记录、奖品输入框文字
+ * 触发时机：每次数据发生变更时（增删名单、完成抽奖、导入、重置等）
+ * 异常处理：localStorage 写入失败时静默忽略（如隐私模式）
+ */
 function saveState() {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -1227,6 +1261,11 @@ function saveState() {
     } catch(e) {}
 }
 
+/**
+ * 页面加载时从 localStorage 恢复上一次保存的数据
+ * 如果本地没有存储数据则不做任何操作
+ * 异常处理：数据解析失败时静默忽略（如存储格式不兼容）
+ */
 function loadState() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -1239,7 +1278,13 @@ function loadState() {
     } catch(e) {}
 }
 
-// ========== 抽奖人数控件 ==========
+// ========== 抽取人数控制 ==========
+
+/**
+ * 通过加减按钮调整每轮抽取人数
+ * 参数 delta：+1 增加一人，-1 减少一人
+ * 自动限制范围：最低 1 人，最高不超过当前名单总人数（无名单时上限 99）
+ */
 function adjustCount(delta) {
 const el = document.getElementById('drawCount');
 let v = parseInt(el.value) || 1;
@@ -1247,6 +1292,11 @@ v = Math.max(1, Math.min(v + delta, names.length || 99));
 el.value = v;
 }
 
+/**
+ * 手动输入人数后的校验
+ * 如果输入小于 1 则修正为 1 并提示
+ * 如果输入超过当前名单总人数则提示错误但不修正，由用户自行修改
+ */
 function validateDrawCount() {
 const el = document.getElementById('drawCount');
 let v = parseInt(el.value);
@@ -1255,27 +1305,37 @@ const max = names.length || 99;
 if(v > max) { showToast('⚠️ 人数不能超过总人数 ' + max); return; }
 }
 
-// ========== 确认弹窗 ==========
+// ========== 通用弹窗与提示 ==========
+
+/**
+ * 弹出确认对话框，包含确定和取消两个按钮
+ * 参数 msg：提示文字（支持换行符 \n）
+ * 参数 cb：点击确定后执行的回调函数
+ */
 function showConfirm(msg, cb){
     document.getElementById("confirmMsg").textContent = msg;
     confirmCallback = cb;
     document.getElementById("confirmDialog").classList.add("show");
 }
 
-// 确认对话框：确定
+/** 确认对话框的"确定"按钮：关闭弹窗并执行回调 */
 function confirmYes(){
     document.getElementById("confirmDialog").classList.remove("show");
     if(confirmCallback) confirmCallback();
     confirmCallback = null;
 }
 
-// 确认对话框：取消
+/** 确认对话框的"取消"按钮：仅关闭弹窗，不执行回调 */
 function confirmNo(){
     document.getElementById("confirmDialog").classList.remove("show");
     confirmCallback = null;
 }
 
-// 顶部 Toast 提示（2秒自动消失）
+/**
+ * 在屏幕顶部显示一条短暂的提示文字
+ * 参数 msg：要显示的文字内容
+ * 提示会在 2 秒后自动消失
+ */
 function showToast(msg){
     const t = document.getElementById("toast");
     t.textContent = msg;
@@ -1283,21 +1343,29 @@ function showToast(msg){
     setTimeout(() => t.classList.remove("show"), 2000);
 }
 
-// 关闭中奖弹窗
+/** 关闭中奖弹窗，同时退出全屏沉浸模式、清除彩带特效 */
 function closeWinner(){
     document.getElementById("winnerOverlay").classList.remove("show");
     document.body.classList.remove("drawing");
     clearConfetti();
 }
 
-// 切换抽奖状态（开始/停止）
+/**
+ * 切换抽奖状态：
+ * 如果正在抽奖则执行停止，否则执行开始
+ */
 function toggleDraw(){
 if(running) stopDraw();
 else startDraw();
 }
 
-// ========== 名单管理 ==========
-// 添加一位参与者
+// ========== 参与者名单管理 ==========
+
+/**
+ * 将输入框中的姓名添加到名单中
+ * 执行空值检查、重复检查，通过后追加到 names 和 initNames
+ * 添加完成后清空输入框、重新聚焦、刷新界面并保存
+ */
 function addName(){
 let v = document.getElementById("nameInput").value.trim();
 if(!v){
@@ -1317,7 +1385,11 @@ saveState();
 updateUndoBtn();
 }
 
-// 从名单删除指定人
+/**
+ * 从名单中删除指定位置的姓名
+ * 先弹出确认对话框，用户确认后从 names 和 initNames 中移除
+ * 参数 i：在 names 数组中的索引位置
+ */
 function delName(i){
 const name = names[i];
 showConfirm(`确定要删除 ${name} 吗？`, () => {
@@ -1330,7 +1402,11 @@ updateUndoBtn();
 });
 }
 
-// 渲染界面（名单列表 + 显示区）
+/**
+ * 渲染整个界面：包括左侧名单列表和中央显示区
+ * 名单列表：展示当前所有参与者姓名及编号
+ * 中央显示区：显示人数统计和奖品名称，抽奖过程中禁止更新
+ */
 function render(){
 document.getElementById("nameList").innerHTML =
 names.map((n,i)=>
@@ -1354,7 +1430,13 @@ dc.innerHTML = parts.join(' <span style="font-size:20px;opacity:0.3">|</span> ')
 }
 }
 
-// ========== 彩带特效 ==========
+// ========== 彩带庆祝特效 ==========
+
+/**
+ * 生成一片彩带碎片并添加动画
+ * 碎片具有随机的大小、颜色、形状、下落持续时间和水平位置
+ * 动画结束后自动从 DOM 中移除
+ */
 function spawnConfettiPiece(){
 const el = document.createElement("div");
 el.className = "confetti";
@@ -1370,11 +1452,17 @@ document.body.appendChild(el);
 setTimeout(() => el.remove(), 5000);
 }
 
+/**
+ * 启动彩带特效：
+ * 1. 立即爆发 60 片碎片（间隔 25ms 依次出现）
+ * 2. 600ms 后进入持续生成模式，每 60~180ms 生成 3 片
+ * 所有定时器句柄保存在 confettiTimers 中以便清除
+ */
 function createConfetti(){
 confettiRunning = true;
 confettiTimers = [];
 
-// 彩带定时调度
+// 持续生成碎片的调度函数（递归调用 setTimeout）
 function schedule(){
 if(!confettiRunning) return;
 for(let n = 0; n < 3; n++) spawnConfettiPiece();
@@ -1383,15 +1471,17 @@ if(!confettiRunning) { clearTimeout(id); return; }
 confettiTimers.push(id);
 }
 
+// 初始爆发：连续生成 60 片
 for(let i = 0; i < 60; i++){
 const id = setTimeout(spawnConfettiPiece, i * 25);
 confettiTimers.push(id);
 }
 
+// 600ms 后进入持续生成
 confettiTimers.push(setTimeout(schedule, 600));
 }
 
-// 清除彩带
+/** 停止所有彩带特效：清除定时器并从 DOM 移除所有碎片 */
 function clearConfetti(){
 confettiRunning = false;
 confettiTimers.forEach(id => clearTimeout(id));
@@ -1399,18 +1489,25 @@ confettiTimers = [];
 document.querySelectorAll(".confetti").forEach(el => el.remove());
 }
 
+// 注入彩带碎片的下落动画关键帧（高度使用当前窗口尺寸计算）
 const fallStyle = document.createElement("style");
 fallStyle.textContent = `@keyframes fall { to { transform: translateY(${window.innerHeight + 100}px) rotate(360deg); opacity: 0; } }`;
 document.head.appendChild(fallStyle);
 
-// Particle background
-// ========== 粒子背景 ==========
+// ========== 粒子星空背景 ==========
+
+/**
+ * 在 Canvas 上绘制漂浮的白色光点，营造星空氛围
+ * 包含 60 个粒子，每个粒子具有随机位置、大小、速度和透明度
+ * 粒子缓慢向上浮动，超出屏幕后从底部重新出现
+ * 使用 requestAnimationFrame 驱动连续动画
+ */
 function initParticles(){
 const canvas = document.getElementById("particleCanvas");
 const ctx = canvas.getContext("2d");
 let w, h;
 
-// Canvas resize
+// 根据窗口大小调整 Canvas 尺寸
 function resize(){
 w = canvas.width = window.innerWidth;
 h = canvas.height = window.innerHeight;
@@ -1418,6 +1515,7 @@ h = canvas.height = window.innerHeight;
 resize();
 window.addEventListener("resize", resize);
 
+// 初始化 60 个随机粒子
 const particles = [];
 const count = 60;
 for(let i = 0; i < count; i++){
@@ -1431,7 +1529,7 @@ o: Math.random() * 0.4 + 0.1
 });
 }
 
-// 每帧绘制粒子
+// 每帧绘制所有粒子（清空画布 → 更新位置 → 逐个绘制）
 function draw(){
 ctx.clearRect(0, 0, w, h);
 for(const p of particles){
@@ -1451,7 +1549,19 @@ draw();
 }
 initParticles();
 
-// ========== 开始抽奖 ==========
+// ========== 开 始 抽 奖 ==========
+
+/**
+ * 抽奖入口函数，由点击"开始抽奖"按钮触发
+ * 执行流程：
+ * 1. 校验：是否正在抽奖、是否有参与者、是否填写了奖品名称
+ * 2. 校验：抽取人数是否超过当前名单总人数
+ * 3. 清理上一轮残留的状态（动画、定时器、弹窗、彩带）
+ * 4. 根据抽取人数决定模式：
+ *    - 单人模式（drawCount === 1）：显示"停止"按钮，等待用户手动停止
+ *    - 多人模式（drawCount > 1）：按钮变为"自动抽取中"并禁用，自动启动第一轮
+ * 5. 调用 startSingleDraw 创建滚轮动画
+ */
 function startDraw(){
 
 if(running) return;
@@ -1503,11 +1613,23 @@ startSingleDraw();
 }
 }
 
-// ========== 单人滚轮动画 ==========
+// ========== 单 人 滚 轮 动 画 ==========
+
+/**
+ * 创建并启动姓名滚轮动画
+ * 步骤：
+ * 1. 将当前名单随机打乱（Fisher-Yates 洗牌），保证每次抽取公平
+ * 2. 用打乱后的顺序构建 15 组重复的滚轮条
+ * 3. 添加箭头指示器（▶）指向中间高亮区域
+ * 4. 计算各项尺寸参数（每项高度、可视区域高度、中心偏移量等）
+ * 5. 启动 animate 循环开始滚动
+ * 参数 decel：减速系数，默认 0.975，多人顺序模式使用 0.96 加快减速
+ *           系数越小减速越快（后续轮次不需要长时间滚动）
+ */
 function startSingleDraw(decel){
 
 	const dc = document.getElementById("displayContent");
-	// 打乱名单，确保公平
+	// Fisher-Yates 洗牌算法，确保每人在滚轮中的位置完全随机
 	const order = [...names];
 	for(let i = order.length - 1; i > 0; i--){
 	const j = Math.floor(Math.random() * (i + 1));
@@ -1538,7 +1660,17 @@ dc.classList.add("roll-mode");
 	let speed = 36;
 	const decelFactor = decel || 0.975;
 
-// ========== 滚轮减速逻辑 ==========
+// ========== 滚 轮 减 速 逻 辑 ==========
+
+/**
+ * 每帧执行一次，驱动滚轮滚动和视觉特效
+ * 核心逻辑：
+ * 1. 每帧增加偏移量 offset，通过 translateY 实现向上滚动
+ * 2. 当 offset 超过 14 组高度时回绕（保证永远在有效范围）
+ * 3. 对可视区域内的每项计算景深效果（越靠近中间越大越亮）
+ * 4. 如果处于停止状态（stopping === true），每帧乘以减速系数
+ * 5. 当速度降至 0.1 以下时停止，确定中奖者，600ms 后执行 finishDraw
+ */
 function animate(){
 if(!running) return;
 
@@ -1588,7 +1720,13 @@ scrollRaf = requestAnimationFrame(animate);
 scrollRaf = requestAnimationFrame(animate);
 }
 
-// ========== 手动停止 / 自动停止 ==========
+// ========== 停 止 机 制 ==========
+
+/**
+ * 用户手动点击"停止"按钮时触发
+ * 将 stopping 置为 true，animate 循环检测到此标志后开始减速
+ * 如果处于多人顺序模式，按钮直接显示"自动抽取中"
+ */
 function stopDraw(){
 
 if(!running || stopping) return;
@@ -1597,7 +1735,11 @@ document.getElementById("drawBtn").disabled = true;
 document.getElementById("drawBtn").innerText = seqState ? "⏳ 自动抽取中" : "⏹ 停…";
 }
 
-// 自动停止（由定时器触发）
+/**
+ * 多人顺序模式中的自动停止（由定时器触发）
+ * 功能同 stopDraw，自动将 stopping 置为 true 开始减速
+ * 多人后续轮次的停止不再需要用户手动点击
+ */
 function autoStop(){
 if(running && !stopping){
 stopping = true;
@@ -1606,7 +1748,25 @@ document.getElementById("drawBtn").innerText = seqState ? "⏳ 自动抽取中" 
 }
 }
 
-// ========== 抽奖结果处理 ==========
+// ========== 抽 奖 结 果 处 理 ==========
+
+/**
+ * 滚轮停止后的结果处理函数（在滚轮完全停止 600ms 后执行）
+ * 单人模式流程：
+ * 1. 清理滚轮相关 DOM 元素（指示器、高亮条、roll-mode 类）
+ * 2. 验证中奖者有效性（是否存在、是否仍在名单中）
+ * 3. 从 names 中移除中奖者，记录到 records
+ * 4. 更新撤销数据（lastDraw）
+ * 5. 清空奖品输入框，显示中奖弹窗
+ * 多人模式流程：
+ * 1. 将当前中奖者追加到 seqState.selected
+ * 2. 调用 refreshWinnerBoard 更新左侧实时名单
+ * 3. 如果还有名额未抽完：
+ *    a. 更新奖品进度文字（如"3/5人"）
+ *    b. 800ms 后调用 restartSequentialRoll 开启下一轮
+ * 4. 如果全部抽完：
+ *    a. 调用 showWinnersAndCelebrate 汇总展示
+ */
 function finishDraw(){
 
 	running = false;
@@ -1689,7 +1849,17 @@ saveState();
 updateUndoBtn();
 }
 
-// ========== 多人模式：自动续抽下一轮 ==========
+// ========== 多 人 顺 序 抽 取 ==========
+
+/**
+ * 多人模式中自动开启下一轮抽取
+ * 执行流程：
+ * 1. 重置运行状态（running = true, stopping = false）
+ * 2. 更新顶部奖品信息显示当前进度（如"已抽 3/5 人"）
+ * 3. 按钮固定为"⏳ 自动抽取中"不可点击
+ * 4. 调用 startSingleDraw 重新创建滚轮（系数 0.96 加速减速）
+ * 5. 设置 1~2.5 秒的随机自动停止定时器
+ */
 function restartSequentialRoll() {
 
 running = true;
@@ -1707,7 +1877,12 @@ startSingleDraw(0.96);
 autoStopTimer = setTimeout(() => autoStop(), 1000 + Math.random() * 1500);
 }
 
-// ========== 更新左侧中奖名单面板 ==========
+/**
+ * 更新抽取过程中左侧实时展示的已中奖名单
+ * 逐行列出所有已抽中的人员（编号 + 姓名）
+ * 如果列表超出屏幕高度会自动滚动到最新一条
+ * 如果没有已抽中人员则隐藏面板
+ */
 function refreshWinnerBoard() {
 if(!seqState) return;
 const names = seqState.selected;
@@ -1720,7 +1895,14 @@ board.classList.add("show");
 board.scrollTop = board.scrollHeight;
 }
 
-// ========== 多人抽取完毕：汇总展示 + 弹窗 ==========
+/**
+ * 多人顺序抽取全部完成后的汇总处理
+ * 1. 隐藏左侧实时名单面板
+ * 2. 将本次所有中奖者作为一条记录存入 records
+ * 3. 更新撤销数据
+ * 4. 清空奖品输入框
+ * 5. 调用 showWinnerOverlay 展示中奖弹窗
+ */
 function showWinnersAndCelebrate(winners) {
 
 document.getElementById("winnerBoard").classList.remove("show");
@@ -1743,7 +1925,18 @@ saveState();
 updateUndoBtn();
 }
 
-// ========== 中奖弹窗（自动滚动员名单） ==========
+// ========== 中 奖 弹 窗（名单自动滚动） ==========
+
+/**
+ * 显示全屏中奖弹窗
+ * 单人：中央大号金色字体展示姓名
+ * 多人：名单以片尾字幕风格自动循环滚动
+ * 滚动逻辑：
+ * - 使用双份名单（A 拷贝 + B 拷贝）实现无缝循环
+ * - 如果名单高度不超过容器则不滚动（删除 B 拷贝只保留 A）
+ * - 使用 RAF + CSS transform 驱动平滑滚动
+ * - 每次循环耗时按人数计算（约 0.12 秒/人，3~20 秒范围）
+ */
 function showWinnerOverlay(winners){
 const total = winners.length;
 const prize = document.getElementById("winnerPrizeDisplay");
@@ -1765,16 +1958,19 @@ overlay.classList.add("show");
 createConfetti();
 
 if(total > 1){
+// 等待浏览器渲染完成后再测量高度和启动滚动
 requestAnimationFrame(() => {
 const wrap = namesEl.querySelector('.winner-scroll-wrap');
 if(!wrap) return;
 const halfH = wrap.offsetHeight / 2;
 const containerH = namesEl.offsetHeight;
+// 如果一份名单的高度不超过容器，不滚动，删除多余的拷贝
 if(halfH <= containerH) {
 const n = parseInt(wrap.dataset.count);
 while(wrap.children.length > n) wrap.removeChild(wrap.lastChild);
 return;
 }
+// 按人数计算滚动速度，启动 RAF 驱动循环
 const dur = Math.max(3, Math.min(20, total * 0.12));
 let pos = 0, lt = 0;
 (function raf(t){
@@ -1791,7 +1987,14 @@ requestAnimationFrame(raf);
 }
 }
 
-// ========== 撤销上一次抽奖 ==========
+// ========== 撤 销 上 一 次 抽 奖 ==========
+
+/**
+ * 将上一轮抽奖结果完全撤销，恢复到抽之前的状态
+ * 功能：恢复被移除的名单、删除对应的记录、还原奖品输入框
+ * 只能在存在可撤销记录且未在抽奖中时执行
+ * 先弹出确认对话框，用户确定后执行恢复操作
+ */
 function undoDraw(){
 if(!lastDraw || running) return;
 showConfirm(`确定要撤销上一轮抽奖吗？\n（将恢复 ${lastDraw.winners.length} 位中奖者）`, () => {
@@ -1810,7 +2013,17 @@ showToast("已撤销");
 });
 }
 
-// ========== 重置（恢复 initNames） ==========
+// ========== 重 置（恢复到初始名单） ==========
+
+/**
+ * 将系统恢复到初始化状态
+ * 1. 取消所有动画和定时器
+ * 2. 清空显示区域和滚轮相关 DOM
+ * 3. 使用 initNames 恢复初始名单（而不是清空）
+ * 4. 清空历史记录
+ * 注意：这是内部使用的重置函数，不清除 localStorage
+ * 用户界面的"重置"按钮调用的是 resetAll（同时清理 localStorage）
+ */
 function reset(){
 
 if(scrollRaf) { cancelAnimationFrame(scrollRaf); scrollRaf = null; }
@@ -1851,7 +2064,12 @@ saveState();
 updateUndoBtn();
 }
 
-// ========== 底部操作栏 ==========
+// ========== 控制按钮状态更新 ==========
+
+/**
+ * 根据当前状态更新撤销按钮的可用/禁用状态
+ * 有可撤销记录且未在抽奖中时启用，否则禁用
+ */
 function updateUndoBtn(){
 const btn = document.getElementById("undoBtn");
 if(lastDraw && !running){
@@ -1861,7 +2079,14 @@ btn.disabled = true;
 }
 }
 
-// ========== 下载导入模板 ==========
+// ========== 下 载 导 入 模 板 ==========
+
+/**
+ * 生成一个包含 10 条示例数据的文本文件并触发下载
+ * 文件名：名单模板.txt
+ * 内容示例：张三，李四，王五，...
+ * 使用中文逗号分隔，与导入格式一致
+ */
 function downloadTemplate(){
   const sample = ["张三","李四","王五","赵六","陈七","周八","吴九","郑十","孙十一","钱十二"];
   const blob = new Blob([sample.join('，')], { type: 'text/plain;charset=utf-8' });
@@ -1874,19 +2099,27 @@ function downloadTemplate(){
   URL.revokeObjectURL(a.href);
 }
 
-// ========== 批量导入 ==========
+// ========== 批 量 导 入 ==========
+
+/** 打开批量导入弹窗，清空文本域并聚焦 */
 function showImport(){
   document.getElementById("importModal").classList.add("show");
   document.getElementById("importText").value = "";
   setTimeout(() => document.getElementById("importText").focus(), 200);
 }
 
-// 关闭导入弹窗
+/** 关闭导入弹窗 */
 function closeImport(){
   document.getElementById("importModal").classList.remove("show");
 }
 
-// 执行导入（解析文本、去重、追加到名单）
+/**
+ * 执行名单导入操作
+ * 解析规则：按换行、中英文逗号、分号、顿号、空白分割
+ * 自动去重：已有姓名跳过不导入并计数
+ * 结果反馈：toast 提示成功导入人数和重复跳过人数
+ * 导入完成后刷新界面、保存数据、更新撤销按钮
+ */
 function submitImport(){
   const text = document.getElementById("importText").value.trim();
   if(!text){ showToast("请输入或粘贴要导入的名单"); return; }
@@ -1910,7 +2143,12 @@ function submitImport(){
   updateUndoBtn();
 }
 
-// 处理上传文件（读为文本填入 textarea）
+/**
+ * 处理用户选择的导入文件
+ * 读取文件内容为文本，填入 textarea 供用户确认
+ * 支持编码：UTF-8
+ * 支持格式：.txt / .csv
+ */
 function handleImportFile(event){
   const file = event.target.files[0];
   if(!file) return;
@@ -1922,7 +2160,16 @@ function handleImportFile(event){
   event.target.value = '';
 }
 
-// ========== 重置所有（清空 localStorage） ==========
+// ========== 重 置 所 有（清空全部数据） ==========
+
+/**
+ * 系统级重置，区别于 reset()
+ * 1. 清除 localStorage 中的所有存储数据
+ * 2. 取消所有动画和定时器
+ * 3. 清空 names、initNames、records 等全部数据
+ * 4. 重置界面到初始状态
+ * 5. 弹出确认对话框防止误操作
+ */
 function resetAll(){
   showConfirm("确定要重置所有数据吗？\n（将清空名单、记录、奖品，不可恢复）", () => {
     localStorage.removeItem(STORAGE_KEY);
@@ -1958,7 +2205,14 @@ document.getElementById("winnerBoard").innerHTML = "";
   });
 }
 
-// ========== 抽取记录 ==========
+// ========== 抽 取 记 录 ==========
+
+/**
+ * 打开历史记录弹窗
+ * 展示所有抽奖记录，包括序号、中奖者、奖品和时间
+ * 中奖者超过 3 人时显示"前 3 人 + 等 N 人"格式
+ * 没有记录时显示空状态提示
+ */
 function showRecords(){
 let modal = document.getElementById("recordModal");
 let recordList = document.getElementById("recordList");
@@ -1986,13 +2240,20 @@ return `
 modal.classList.add("show");
 }
 
-// 关闭记录弹窗
+/** 关闭记录弹窗 */
 function closeRecords(){
 let modal = document.getElementById("recordModal");
 modal.classList.remove("show");
 }
 
-// ========== 导出记录 ==========
+// ========== 导 出 记 录 ==========
+
+/**
+ * 将历史抽奖记录导出为制表符分隔的文本文件
+ * 格式：序号\t奖品\t中奖者\t时间
+ * 中奖者使用顿号分隔显示全部姓名
+ * 文件名：抽奖记录_YYYY-MM-DD.txt
+ */
 function exportRecords(){
   if(records.length === 0){ showToast("暂无记录可导出"); return; }
   let text = "序号\t奖品\t中奖者\t时间\n";
@@ -2011,7 +2272,9 @@ function exportRecords(){
   showToast("记录已导出");
 }
 
-// ========== 点击外部关闭弹窗 ==========
+// ========== 点 击 外 部 关 闭 弹 窗 ==========
+
+/** 点击弹窗外部区域（灰色背景）关闭对应的弹窗 */
 window.onclick = function(event){
 let recordModal = document.getElementById("recordModal");
 if(event.target == recordModal) recordModal.classList.remove("show");
@@ -2023,7 +2286,12 @@ let confirmEl = document.getElementById("confirmDialog");
 if(event.target == confirmEl) confirmNo();
 }
 
-// ========== 键盘快捷键 ==========
+// ========== 键 盘 快 捷 键 ==========
+
+/**
+ * Esc：关闭当前打开的弹窗（记录/导入/中奖/确认）
+ * F / f：切换浏览器全屏模式（适用于投影仪场景）
+ */
 document.addEventListener("keydown", function(e){
   if(e.key === "Escape"){
     const modals = ["recordModal", "importModal"];
@@ -2043,8 +2311,11 @@ document.addEventListener("keydown", function(e){
   }
 });
 
+// 页面关闭或刷新前自动保存当前数据
 window.addEventListener("beforeunload", saveState);
 
+// ========== 初始加载 ==========
+// 依次执行：恢复本地数据 → 渲染界面 → 更新撤销按钮状态
 loadState();
 render();
 updateUndoBtn();
