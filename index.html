@@ -13,7 +13,7 @@
 
 body {
     font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
     color: #fff;
     text-align: center;
     display: flex;
@@ -24,25 +24,57 @@ body {
     padding: 20px 20px 15px;
 }
 
+#particleCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
+
 h1 {
-    font-size: 2.5em;
-    margin-bottom: 5px;
+    position: relative;
+    z-index: 1;
+    font-size: 2.8em;
+    margin-bottom: 3px;
     flex-shrink: 0;
-    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    letter-spacing: 2px;
+    text-shadow: 0 0 30px rgba(102, 126, 234, 0.6), 0 4px 15px rgba(0, 0, 0, 0.3);
+    letter-spacing: 4px;
     animation: fadeInDown 0.8s ease;
-    transition: font-size 0.3s ease, margin 0.3s ease;
+    transition: font-size 0.3s ease;
+    background: linear-gradient(90deg, #f093fb, #f5576c, #ffeb3b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .subtitle {
+    position: relative;
+    z-index: 1;
     font-size: 1em;
-    opacity: 0.9;
-    margin-bottom: 10px;
+    opacity: 0.7;
+    margin-bottom: 8px;
     flex-shrink: 0;
     animation: fadeInUp 0.8s ease 0.2s both;
 }
 
+.fullscreen-hint {
+    position: fixed;
+    bottom: 12px;
+    right: 16px;
+    z-index: 100;
+    font-size: 11px;
+    opacity: 0.3;
+    color: #fff;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
 #setupPanel {
+    position: relative;
+    z-index: 1;
     flex-shrink: 0;
     padding: 6px 0 4px;
     animation: slideInUp 0.6s ease;
@@ -50,11 +82,15 @@ h1 {
 
 .prize-row {
     max-width: 520px;
-    margin: 0 auto 10px;
+    margin: 0 auto 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
 }
 
 .prize-row input {
-    width: 100%;
+    flex: 1;
     margin: 0;
     font-size: 16px;
     padding: 14px 18px;
@@ -62,20 +98,80 @@ h1 {
     border-radius: 14px;
 }
 
+.draw-count-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 4px 8px;
+    flex-shrink: 0;
+}
+
+.draw-count-wrap label {
+    font-size: 13px;
+    opacity: 0.7;
+}
+
+.draw-count-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.draw-count-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: none;
+    box-shadow: none;
+}
+
+#drawCount {
+    width: 40px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 4px;
+    margin: 0;
+    border: none;
+    background: transparent;
+    color: #ffeb3b;
+    -moz-appearance: textfield;
+}
+
+#drawCount::-webkit-inner-spin-button,
+#drawCount::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 #nameBox {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(10px);
     padding: 12px 18px;
     border-radius: 16px;
     max-width: 520px;
     margin: 0 auto;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
 }
 
 #nameBox:hover {
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
 }
 
@@ -113,6 +209,7 @@ h1 {
     display: flex;
     justify-content: center;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .action-row button {
@@ -125,9 +222,9 @@ input {
     width: 90%;
     padding: 10px 14px;
     margin: 6px auto;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.1);
     color: #fff;
     font-size: 13px;
     font-family: inherit;
@@ -136,14 +233,42 @@ input {
 }
 
 input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.5);
 }
 
 input:focus {
     outline: none;
-    border-color: rgba(255, 255, 255, 0.6);
-    background: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.18);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+}
+
+textarea {
+    width: 100%;
+    padding: 14px;
+    margin: 0 0 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 180px;
+    transition: all 0.3s ease;
+    display: block;
+    line-height: 1.6;
+}
+
+textarea::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+textarea:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
 }
 
 button {
@@ -173,8 +298,9 @@ button:active {
 }
 
 button:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
+    transform: none !important;
 }
 
 .list-item {
@@ -183,7 +309,7 @@ button:disabled {
     align-items: center;
     padding: 8px 14px;
     margin: 5px 0;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 10px;
     border-left: 3px solid #f093fb;
     transition: all 0.3s ease;
@@ -191,7 +317,7 @@ button:disabled {
 }
 
 .list-item:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
     transform: translateX(5px);
 }
 
@@ -206,7 +332,7 @@ button:disabled {
 
 .del {
     cursor: pointer;
-    opacity: 0.6;
+    opacity: 0.5;
     font-size: 1.2em;
     transition: all 0.3s ease;
     width: 30px;
@@ -215,20 +341,21 @@ button:disabled {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .del:hover {
     opacity: 1;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.25);
     transform: rotate(90deg) scale(1.1);
 }
 
 #display {
     position: relative;
+    z-index: 1;
     flex: 1;
     min-height: 0;
-    margin: 10px 0;
+    margin: 8px 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -251,26 +378,82 @@ button:disabled {
     will-change: transform, filter, text-shadow, color;
 }
 
+#winnerBoard {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 15;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 60px 0 60px 16px;
+    overflow-y: auto;
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+    scrollbar-width: none;
+}
+
+#winnerBoard::-webkit-scrollbar { display: none; }
+
+#winnerBoard.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.wb-row {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffeb3b;
+    text-shadow: 0 0 6px rgba(255,215,0,0.25);
+    text-align: left;
+    line-height: 1.6;
+    animation: wbIn 0.2s ease forwards;
+    opacity: 0;
+}
+
+@keyframes wbIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+body.drawing #displayContent {
+    z-index: 30;
+}
+
+.wb-row {
+    color: #ffeb3b;
+    text-shadow: 0 0 15px rgba(255,215,0,0.5);
+    animation: scaleIn 0.4s ease forwards;
+}
+
+@keyframes shuffleGlow {
+    0% { text-shadow: 0 0 20px rgba(255,215,0,0.3), 0 8px 30px rgba(0,0,0,0.5); }
+    100% { text-shadow: 0 0 50px rgba(255,215,0,0.8), 0 0 80px rgba(255,215,0,0.3), 0 8px 30px rgba(0,0,0,0.5); }
+}
+
 #currentPrize {
     position: absolute;
-    top: 15px;
+    top: 12px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 5;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     color: #ffeb3b;
-    padding: 6px 28px;
+    padding: 5px 24px;
     border-radius: 30px;
-    border: 1px solid rgba(255, 235, 59, 0.3);
-    text-shadow: 0 0 20px rgba(255, 235, 59, 0.6);
+    border: 1px solid rgba(255, 235, 59, 0.2);
+    text-shadow: 0 0 20px rgba(255, 235, 59, 0.5);
     opacity: 0;
     transition: opacity 0.4s ease;
     pointer-events: none;
     white-space: nowrap;
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(4px);
-    box-shadow: 0 0 30px rgba(255, 235, 59, 0.15);
 }
 
 #currentPrize.show {
@@ -297,23 +480,8 @@ button:disabled {
     font-size: 28px;
     font-weight: 900;
     flex-shrink: 0;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.8);
     text-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-}
-
-.roll-highlight {
-    position: absolute;
-    left: 4%;
-    right: 4%;
-    top: 50%;
-    height: 68px;
-    transform: translateY(-50%);
-    border-radius: 16px;
-    background: rgba(255, 215, 0, 0.06);
-    border: 2px solid rgba(255, 215, 0, 0.3);
-    box-shadow: 0 0 40px rgba(255, 215, 0, 0.12), inset 0 0 30px rgba(255, 215, 0, 0.05);
-    pointer-events: none;
-    z-index: 3;
 }
 
 .roll-indicator {
@@ -337,6 +505,7 @@ button:disabled {
     transition: transform 0.4s ease, color 0.4s ease, text-shadow 0.4s ease;
 }
 
+
 #displayBg {
     position: absolute;
     width: 500px;
@@ -345,7 +514,7 @@ button:disabled {
     top: 50%;
     transform: translate(-50%, -50%);
     border-radius: 30px;
-    background: radial-gradient(circle at 30% 30%, rgba(255, 235, 59, 0.4), rgba(102, 126, 234, 0.2), transparent 70%);
+    background: radial-gradient(circle at 30% 30%, rgba(255, 235, 59, 0.3), rgba(102, 126, 234, 0.15), transparent 70%);
     filter: blur(40px);
     z-index: -1;
     animation: bgPulse 0.6s ease-in-out;
@@ -360,8 +529,8 @@ button:disabled {
     top: 50%;
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    border: 2px solid rgba(240, 147, 251, 0.3);
-    box-shadow: 0 0 40px rgba(102, 126, 234, 0.4), inset 0 0 40px rgba(240, 147, 251, 0.2);
+    border: 1px solid rgba(240, 147, 251, 0.2);
+    box-shadow: 0 0 40px rgba(102, 126, 234, 0.3), inset 0 0 40px rgba(240, 147, 251, 0.1);
     animation: glowRotate 4s linear infinite;
     z-index: -1;
     pointer-events: none;
@@ -375,55 +544,72 @@ button:disabled {
     top: 50%;
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    border: 1px solid rgba(245, 87, 108, 0.2);
-    box-shadow: 0 0 60px rgba(240, 147, 251, 0.2);
+    border: 1px solid rgba(245, 87, 108, 0.15);
+    box-shadow: 0 0 60px rgba(240, 147, 251, 0.15);
     animation: glowRotate 6s linear infinite reverse;
     z-index: -2;
     pointer-events: none;
 }
 
 @keyframes bgPulse {
-    0% {
-        filter: blur(20px);
-        opacity: 0.5;
-    }
-    50% {
-        filter: blur(50px);
-        opacity: 1;
-    }
-    100% {
-        filter: blur(30px);
-        opacity: 0.8;
-    }
+    0% { filter: blur(20px); opacity: 0.5; }
+    50% { filter: blur(50px); opacity: 1; }
+    100% { filter: blur(30px); opacity: 0.8; }
 }
 
 @keyframes glowRotate {
-    0% {
-        transform: translate(-50%, -50%) rotateZ(0deg);
-        opacity: 0.6;
-    }
-    50% {
-        opacity: 1;
-    }
-    100% {
-        transform: translate(-50%, -50%) rotateZ(360deg);
-        opacity: 0.6;
-    }
+    0% { transform: translate(-50%, -50%) rotateZ(0deg); opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { transform: translate(-50%, -50%) rotateZ(360deg); opacity: 0.5; }
 }
 
 .button-group {
+    position: relative;
+    z-index: 1;
     text-align: center;
     flex-shrink: 0;
-    padding: 8px 0 14px;
+    padding: 8px 0 12px;
     animation: slideInUp 0.8s ease 0.2s both;
 }
 
 #drawBtn {
-    padding: 16px 56px;
-    font-size: 20px;
-    min-width: 220px;
+    padding: 18px 64px;
+    font-size: 22px;
+    min-width: 240px;
     background: linear-gradient(135deg, #667eea, #764ba2) !important;
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+    animation: drawBtnPulse 2s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+#drawBtn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), transparent 60%);
+    animation: drawBtnShine 3s ease-in-out infinite;
+}
+
+@keyframes drawBtnPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 12px 35px rgba(0,0,0,0.3); }
+    50% { transform: scale(1.03); box-shadow: 0 18px 50px rgba(102,126,234,0.5); }
+}
+
+@keyframes drawBtnShine {
+    0%, 100% { transform: rotate(0deg); opacity: 0.5; }
+    50% { transform: rotate(180deg); opacity: 1; }
+}
+
+body.drawing #drawBtn {
+    animation: none;
+}
+
+body.drawing #drawBtn::after {
+    display: none;
 }
 
 @keyframes fadeIn {
@@ -432,57 +618,37 @@ button:disabled {
 }
 
 @keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes slideInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* 全屏沉浸抽奖模式 */
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.3); }
+    to { opacity: 1; transform: scale(1); }
+}
+
 body.drawing #setupPanel {
     display: none !important;
 }
 
 body.drawing h1 {
     font-size: 1.5em;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
     opacity: 0.6;
 }
 
@@ -493,7 +659,7 @@ body.drawing .subtitle {
 body.drawing #display {
     flex: 1;
     height: auto;
-    margin: 5px auto;
+    margin: 4px auto;
 }
 
 body.drawing #displayContent.roll-mode {
@@ -507,7 +673,7 @@ body.drawing .roll-item {
 
 body.drawing .button-group {
     flex-shrink: 0;
-    padding: 4px 0 10px;
+    padding: 4px 0 8px;
 }
 
 body.drawing #displayBg {
@@ -534,22 +700,10 @@ body.drawing #displayGlow2 {
     z-index: 2500;
 }
 
-::-webkit-scrollbar {
-    width: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.08); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
 
 .modal {
     display: none;
@@ -572,29 +726,88 @@ body.drawing #displayGlow2 {
 
 .modal-content {
     position: relative;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95));
+    background: linear-gradient(135deg, rgba(30, 30, 60, 0.97), rgba(20, 20, 45, 0.97));
     border-radius: 25px;
-    padding: 40px;
+    padding: 36px;
     max-width: 600px;
     width: 90%;
     max-height: 70vh;
     overflow-y: auto;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 20px 70px rgba(0, 0, 0, 0.4);
     animation: slideInUp 0.4s ease;
 }
 
 .modal-content h2 {
-    font-size: 2em;
-    margin-bottom: 25px;
+    font-size: 1.8em;
+    margin-bottom: 20px;
     text-align: center;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
+.modal-hint {
+    font-size: 0.85em;
+    opacity: 0.6;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.import-hint-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.import-dl-btn {
+    font-size: 12px !important;
+    padding: 8px 16px !important;
+    background: linear-gradient(135deg, #43e97b, #38f9d7) !important;
+    color: #333 !important;
+}
+
+.import-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.import-buttons button {
+    min-width: 100px;
+}
+
+.file-upload-label {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: #333;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.file-upload-label:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+.file-upload-label input {
+    display: none;
+}
+
 .record-item {
-    background: rgba(255, 255, 255, 0.12);
-    padding: 16px 20px;
-    margin: 12px 0;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 14px 18px;
+    margin: 10px 0;
     border-radius: 12px;
     border-left: 4px solid #ffeb3b;
     display: flex;
@@ -605,55 +818,66 @@ body.drawing #displayGlow2 {
 }
 
 .record-item:hover {
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.12);
     transform: translateX(5px);
 }
 
 .record-item .rank {
     font-weight: 900;
-    font-size: 1.3em;
+    font-size: 1.2em;
     color: #ffeb3b;
-    width: 40px;
+    width: 36px;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .record-item .winner-info {
     flex: 1;
     text-align: left;
-    margin: 0 15px;
+    margin: 0 12px;
+    min-width: 0;
 }
 
 .record-item .winner-name {
     font-weight: 700;
-    font-size: 1.1em;
+    font-size: 1em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .record-item .prize-name {
-    font-size: 0.9em;
-    opacity: 0.8;
-    margin-top: 4px;
+    font-size: 0.85em;
+    opacity: 0.7;
+    margin-top: 3px;
 }
 
 .record-item .time {
-    font-size: 0.85em;
-    opacity: 0.6;
+    font-size: 0.8em;
+    opacity: 0.5;
+    flex-shrink: 0;
+}
+
+.record-actions {
+    text-align: center;
+    margin-top: 16px;
 }
 
 .modal-close {
     position: absolute;
-    right: 25px;
-    top: 20px;
+    right: 20px;
+    top: 16px;
     font-size: 28px;
     cursor: pointer;
-    opacity: 0.7;
+    opacity: 0.5;
     transition: all 0.3s ease;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .modal-close:hover {
@@ -664,29 +888,23 @@ body.drawing #displayGlow2 {
 
 .empty-record {
     text-align: center;
-    padding: 40px 20px;
-    opacity: 0.8;
+    padding: 30px 20px;
+    opacity: 0.6;
     font-size: 1.1em;
 }
 
 @keyframes indicatorPulse {
-    0%, 100% {
-        opacity: 0.7;
-        transform: translateY(-50%) translateX(0);
-    }
-    50% {
-        opacity: 1;
-        transform: translateY(-50%) translateX(-6px);
-    }
+    0%, 100% { opacity: 0.6; transform: translateY(-50%) translateX(0); }
+    50% { opacity: 1; transform: translateY(-50%) translateX(-6px); }
 }
 
 .toast {
     position: fixed;
-    top: 30px;
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 3000;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(10px);
     color: #fff;
     padding: 12px 28px;
@@ -696,7 +914,7 @@ body.drawing #displayGlow2 {
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     white-space: nowrap;
 }
 
@@ -714,8 +932,10 @@ body.drawing #displayGlow2 {
     height: 100%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     flex-direction: column;
+    padding-top: 20px;
+    overflow-y: auto;
 }
 
 .winner-overlay.show {
@@ -728,7 +948,7 @@ body.drawing #displayGlow2 {
     top: 20px;
     font-size: 36px;
     cursor: pointer;
-    opacity: 0.7;
+    opacity: 0.6;
     color: #fff;
     transition: all 0.3s ease;
     width: 44px;
@@ -737,41 +957,86 @@ body.drawing #displayGlow2 {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.1);
     z-index: 10;
     line-height: 1;
 }
 
 .winner-close:hover {
     opacity: 1;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.2);
     transform: rotate(90deg);
 }
 
 .winner-content {
     text-align: center;
     color: #fff;
+    pointer-events: none;
+    padding: 20px 20px 10px;
+    max-width: 90vw;
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 .winner-label {
     font-size: 28px;
-    margin-bottom: 20px;
-    opacity: 0.9;
+    margin-bottom: 12px;
+    flex-shrink: 0;
     text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: scaleIn 0.5s ease forwards;
 }
 
-.winner-name {
-    font-size: 72px;
-    font-weight: 900;
-    text-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
-    color: #ffeb3b;
-    margin-bottom: 15px;
+.winner-names {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+    margin: 8px 0;
 }
 
-.winner-prize {
+.winner-scroll-wrap {
+    will-change: transform;
+}
+
+.winner-prize-display {
+    font-size: 24px;
+    opacity: 0.9;
+    padding: 4px 0 8px;
+    flex-shrink: 0;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 0.6s ease 0.3s both;
+}
+
+.winner-label {
     font-size: 28px;
+    margin-bottom: 16px;
     opacity: 0.9;
     text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: scaleIn 0.5s ease forwards;
+}
+
+.winner-names {
+    margin: 10px 0;
+    padding: 0 10px;
+    width: 100%;
+    height: 50vh;
+    overflow: hidden;
+    position: relative;
+}
+
+.winner-scroll-wrap {
+    will-change: transform;
+}
+
+.winner-prize-display {
+    font-size: 26px;
+    opacity: 0.9;
+    margin-top: 10px;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 0.6s ease 0.3s both;
 }
 
 .confirm-dialog {
@@ -792,11 +1057,11 @@ body.drawing #displayGlow2 {
 }
 
 .confirm-content {
-    background: linear-gradient(135deg, rgba(60, 60, 100, 0.97), rgba(40, 40, 70, 0.97));
+    background: linear-gradient(135deg, rgba(30, 30, 60, 0.97), rgba(20, 20, 45, 0.97));
     border-radius: 16px;
     padding: 30px 36px;
     text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     animation: slideInUp 0.3s ease;
 }
@@ -805,6 +1070,7 @@ body.drawing #displayGlow2 {
     margin-bottom: 20px;
     font-size: 16px;
     color: #fff;
+    white-space: pre-line;
 }
 
 .confirm-buttons {
@@ -824,8 +1090,10 @@ body.drawing #displayGlow2 {
 }
 </style>
 </head>
-
 <body>
+
+<canvas id="particleCanvas"></canvas>
+<div class="fullscreen-hint">按 F 全屏</div>
 
 <h1>✨ 年会抽奖系统 ✨</h1>
 <p class="subtitle">庆祝年会，赢取大奖</p>
@@ -837,11 +1105,18 @@ body.drawing #displayGlow2 {
     <div id="currentPrize"></div>
     <div id="displayContent"></div>
 </div>
+<div id="winnerBoard"></div>
 
 <div id="setupPanel">
 
 <div class="prize-row">
 <input id="prizeInput" placeholder="🎁 输入本轮奖品" onkeypress="if(event.key==='Enter') toggleDraw()" oninput="render()">
+<div class="draw-count-wrap">
+<label>人数</label>
+<button class="draw-count-btn" onclick="adjustCount(-1)">−</button>
+<input type="number" id="drawCount" value="1" min="1" onchange="validateDrawCount()">
+<button class="draw-count-btn" onclick="adjustCount(1)">+</button>
+</div>
 </div>
 
 <div id="nameBox">
@@ -854,8 +1129,10 @@ body.drawing #displayGlow2 {
 </div>
 
 <div class="action-row">
+<button onclick="undoDraw()" id="undoBtn" disabled style="background: linear-gradient(135deg, #f7b731, #f093fb);">↩ 撤销</button>
+<button onclick="showImport()" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">📥 导入</button>
 <button onclick="showRecords()" style="background: linear-gradient(135deg, #f5576c, #f093fb);">📋 记录</button>
-<button onclick="mockData()" style="background: linear-gradient(135deg, #43e97b, #38f9d7); color: #333;">⚡ 模拟</button>
+<button onclick="resetAll()" style="background: linear-gradient(135deg, #a8a8a8, #666);">🔄 重置</button>
 </div>
 
 </div>
@@ -869,6 +1146,28 @@ body.drawing #displayGlow2 {
 <span class="modal-close" onclick="closeRecords()">&times;</span>
 <h2>🏆 抽取记录</h2>
 <div id="recordList"></div>
+<div class="record-actions">
+<button onclick="exportRecords()" style="background: linear-gradient(135deg, #43e97b, #38f9d7); color: #333;">📤 导出记录</button>
+</div>
+</div>
+</div>
+
+<div id="importModal" class="modal">
+<div class="modal-content">
+<span class="modal-close" onclick="closeImport()">&times;</span>
+<h2>📥 批量导入名单</h2>
+<p class="modal-hint">每行一个姓名，或用中文逗号 / 英文逗号 / 分号 / 空格分隔</p>
+<textarea id="importText" placeholder="张三，李四，王五，赵六，陈七，周八"></textarea>
+<div class="import-hint-row">
+<label class="file-upload-label">
+📁 选择文件
+<input type="file" accept=".txt,.csv" onchange="handleImportFile(event)">
+</label>
+<button onclick="downloadTemplate()" class="import-dl-btn">📄 下载模板</button>
+</div>
+<div class="import-buttons">
+<button onclick="submitImport()" style="background: linear-gradient(135deg, #667eea, #764ba2);">✅ 确认导入</button>
+</div>
 </div>
 </div>
 
@@ -876,8 +1175,8 @@ body.drawing #displayGlow2 {
     <span class="winner-close" onclick="closeWinner()">&times;</span>
     <div class="winner-content">
         <div class="winner-label">🏆 恭喜中奖 🏆</div>
-        <div class="winner-name" id="winnerName"></div>
-        <div class="winner-prize" id="winnerPrize"></div>
+        <div class="winner-prize-display" id="winnerPrizeDisplay"></div>
+        <div class="winner-names" id="winnerNames"></div>
     </div>
 </div>
 
@@ -894,10 +1193,10 @@ body.drawing #displayGlow2 {
 </div>
 
 <script>
+const STORAGE_KEY = 'lottery_data';
 
-// 初始数据快照
+// ========== 数据状态 ==========
 let initNames = [];
-
 let names = [];
 let records = [];
 let currentPrizeName = "";
@@ -909,10 +1208,54 @@ let currentWinner = "";
 let scrollRaf = null;
 let stopDelayTimer = null;
 let confettiTimers = [];
+let particleRaf = null;
 
 let confirmCallback = null;
 let confettiRunning = false;
 
+let lastDraw = null;   // 上次抽奖结果（用于撤销）
+let seqState = null;     // 多人顺序抽取状态
+let autoStopTimer = null;
+
+// ========== localStorage 持久化 ==========
+function saveState() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            names, initNames, records,
+            prizeInput: document.getElementById('prizeInput').value
+        }));
+    } catch(e) {}
+}
+
+function loadState() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (Array.isArray(data.names)) names = data.names;
+        if (Array.isArray(data.initNames)) initNames = data.initNames;
+        if (Array.isArray(data.records)) records = data.records;
+        if (typeof data.prizeInput === 'string') document.getElementById('prizeInput').value = data.prizeInput;
+    } catch(e) {}
+}
+
+// ========== 抽奖人数控件 ==========
+function adjustCount(delta) {
+const el = document.getElementById('drawCount');
+let v = parseInt(el.value) || 1;
+v = Math.max(1, Math.min(v + delta, names.length || 99));
+el.value = v;
+}
+
+function validateDrawCount() {
+const el = document.getElementById('drawCount');
+let v = parseInt(el.value);
+if(isNaN(v) || v < 1) { el.value = 1; showToast('人数不能少于 1'); return; }
+const max = names.length || 99;
+if(v > max) { showToast('⚠️ 人数不能超过总人数 ' + max); return; }
+}
+
+// ========== 确认弹窗 ==========
 function showConfirm(msg, cb){
     document.getElementById("confirmMsg").textContent = msg;
     confirmCallback = cb;
@@ -948,6 +1291,7 @@ if(running) stopDraw();
 else startDraw();
 }
 
+// ========== 名单管理 ==========
 function addName(){
 let v = document.getElementById("nameInput").value.trim();
 if(!v){
@@ -963,6 +1307,8 @@ if(!initNames.includes(v)) initNames.push(v);
 document.getElementById("nameInput").value="";
 document.getElementById("nameInput").focus();
 render();
+saveState();
+updateUndoBtn();
 }
 
 function delName(i){
@@ -972,11 +1318,12 @@ let idx = initNames.indexOf(name);
 if(idx!==-1) initNames.splice(idx,1);
 names.splice(i,1);
 render();
+saveState();
+updateUndoBtn();
 });
 }
 
 function render(){
-
 document.getElementById("nameList").innerHTML =
 names.map((n,i)=>
 `<div class="list-item">
@@ -993,12 +1340,13 @@ if(names.length === 0 && !prize){
 dc.innerHTML = '<span style="font-size:20px;opacity:0.35">添加参与者和奖品</span>';
 } else {
 let parts = [];
-if(names.length) parts.push(`<span style="font-size:28px">👥 ${names.length}</span>`);
+if(names.length) parts.push(`<span style="font-size:28px">👥 ${names.length} 人</span>`);
 if(prize) parts.push(`<span style="font-size:18px;opacity:0.5">🎁 ${prize}</span>`);
 dc.innerHTML = parts.join(' <span style="font-size:20px;opacity:0.3">|</span> ');
 }
 }
 
+// ========== 彩带特效 ==========
 function spawnConfettiPiece(){
 const el = document.createElement("div");
 el.className = "confetti";
@@ -1009,10 +1357,9 @@ el.style.width = size + "px";
 el.style.height = (Math.random() > 0.5 ? size : size * 0.6) + "px";
 el.style.background = ["#f093fb","#f5576c","#667eea","#764ba2","#ffeb3b","#ffd700","#ff6b6b","#00d2d3"][Math.floor(Math.random() * 8)];
 el.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
-const dur = Math.random() * 3 + 2;
-el.style.animation = `fall ${dur}s linear`;
+el.style.animation = `fall ${Math.random() * 3 + 2}s linear`;
 document.body.appendChild(el);
-setTimeout(() => el.remove(), dur * 1000);
+setTimeout(() => el.remove(), 5000);
 }
 
 function createConfetti(){
@@ -1021,23 +1368,18 @@ confettiTimers = [];
 
 function schedule(){
 if(!confettiRunning) return;
-for(let n = 0; n < 3; n++){
-spawnConfettiPiece();
-}
+for(let n = 0; n < 3; n++) spawnConfettiPiece();
 const id = setTimeout(schedule, Math.random() * 120 + 60);
 if(!confettiRunning) { clearTimeout(id); return; }
 confettiTimers.push(id);
 }
 
-// 初始爆发
 for(let i = 0; i < 60; i++){
 const id = setTimeout(spawnConfettiPiece, i * 25);
 confettiTimers.push(id);
 }
 
-// 持续生成
-const id = setTimeout(schedule, 600);
-confettiTimers.push(id);
+confettiTimers.push(setTimeout(schedule, 600));
 }
 
 function clearConfetti(){
@@ -1047,20 +1389,61 @@ confettiTimers = [];
 document.querySelectorAll(".confetti").forEach(el => el.remove());
 }
 
-const style = document.createElement("style");
-style.textContent = `
-@keyframes fall {
-    to {
-        transform: translateY(${window.innerHeight + 100}px) rotate(360deg);
-        opacity: 0;
-    }
-}
-`;
-document.head.appendChild(style);
+const fallStyle = document.createElement("style");
+fallStyle.textContent = `@keyframes fall { to { transform: translateY(${window.innerHeight + 100}px) rotate(360deg); opacity: 0; } }`;
+document.head.appendChild(fallStyle);
 
+// Particle background
+// ========== 粒子背景 ==========
+function initParticles(){
+const canvas = document.getElementById("particleCanvas");
+const ctx = canvas.getContext("2d");
+let w, h;
+
+function resize(){
+w = canvas.width = window.innerWidth;
+h = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+const particles = [];
+const count = 60;
+for(let i = 0; i < count; i++){
+particles.push({
+x: Math.random() * w,
+y: Math.random() * h,
+r: Math.random() * 2 + 1,
+dx: (Math.random() - 0.5) * 0.3,
+dy: -(Math.random() * 0.2 + 0.1),
+o: Math.random() * 0.4 + 0.1
+});
+}
+
+function draw(){
+ctx.clearRect(0, 0, w, h);
+for(const p of particles){
+p.x += p.dx;
+p.y += p.dy;
+if(p.x < 0) p.x = w;
+if(p.x > w) p.x = 0;
+if(p.y < -10) p.y = h + 10;
+ctx.beginPath();
+ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+ctx.fillStyle = `rgba(255,255,255,${p.o})`;
+ctx.fill();
+}
+particleRaf = requestAnimationFrame(draw);
+}
+draw();
+}
+initParticles();
+
+// ========== 开始抽奖 ==========
 function startDraw(){
 
 if(running) return;
+const count = parseInt(document.getElementById('drawCount').value) || 1;
 if(names.length===0){
 showToast("请先添加参与者");
 return;
@@ -1072,11 +1455,17 @@ showToast("请输入奖品名称");
 return;
 }
 
-// 清理上一轮的残留
+const drawCount = count;
+if(drawCount > names.length) {
+showToast(`⚠️ 抽奖人数 ${drawCount} 超过总人数 ${names.length}`);
+return;
+}
+
 if(scrollRaf) { cancelAnimationFrame(scrollRaf); scrollRaf = null; }
+if(stopDelayTimer) { clearTimeout(stopDelayTimer); stopDelayTimer = null; }
+if(autoStopTimer) { clearTimeout(autoStopTimer); autoStopTimer = null; }
 document.getElementById("winnerOverlay").classList.remove("show");
 clearConfetti();
-
 running = true;
 stopping = false;
 currentWinner = "";
@@ -1084,46 +1473,60 @@ currentWinner = "";
 document.body.classList.add("drawing");
 
 document.getElementById("drawBtn").disabled = false;
-document.getElementById("drawBtn").innerText="⏹ 停止";
-if(stopDelayTimer) { clearTimeout(stopDelayTimer); stopDelayTimer = null; }
+if(drawCount > 1){
+document.getElementById("drawBtn").disabled = true;
+document.getElementById("drawBtn").innerText = "⏳ 自动抽取中";
+} else {
+document.getElementById("drawBtn").innerText = "⏹ 停止";
+}
+document.getElementById("currentPrize").textContent = `🎁 ${currentPrizeName} × ${drawCount}人`;
+document.getElementById("currentPrize").classList.add("show");
+
+if(drawCount > 1){
+seqState = { drawCount, selected: [], totalCount: drawCount };
+startSingleDraw();
+autoStopTimer = setTimeout(() => autoStop(), 2000 + Math.random() * 1500);
+} else {
+startSingleDraw();
+}
+}
+
+// ========== 单人滚轮动画 ==========
+function startSingleDraw(decel){
 
 	const dc = document.getElementById("displayContent");
-	// 构建滚筒条
+	// 打乱名单，确保公平
+	const order = [...names];
+	for(let i = order.length - 1; i > 0; i--){
+	const j = Math.floor(Math.random() * (i + 1));
+	[order[i], order[j]] = [order[j], order[i]];
+	}
 	let html = '<div class="roll-strip" id="rollStrip">';
 	for(let r = 0; r < 15; r++){
-	for(let i = 0; i < names.length; i++){
-	html += `<div class="roll-item">${names[i]}</div>`;
+	for(let i = 0; i < order.length; i++){
+	html += `<div class="roll-item">${order[i]}</div>`;
 	}
 	}
 html += '</div>';
 dc.innerHTML = html;
 dc.classList.add("roll-mode");
 
-	// 添加箭头指示器
 	const indicator = document.createElement("div");
 	indicator.className = "roll-indicator";
 	indicator.textContent = "◀";
 	dc.appendChild(indicator);
-
-	// 中间高亮条
-	const hl = document.createElement("div");
-	hl.className = "roll-highlight";
-	dc.appendChild(hl);
 
 	const strip = document.getElementById("rollStrip");
 	const rollItems = strip.children;
 	let offset = 0;
 	const itemH = dc.querySelector('.roll-item').offsetHeight;
 	const viewportH = dc.offsetHeight;
-	const hlRect = hl.getBoundingClientRect();
-	const dcRect = dc.getBoundingClientRect();
-	const centerOffset = hlRect.top + hlRect.height / 2 - dcRect.top;
-	const setH = names.length * itemH;
+	const centerOffset = viewportH / 2;
+	const setH = order.length * itemH;
 	let speed = 36;
+	const decelFactor = decel || 0.975;
 
-document.getElementById("currentPrize").textContent = `🎁 本轮奖品：${currentPrizeName}`;
-document.getElementById("currentPrize").classList.add("show");
-
+// ========== 滚轮减速逻辑 ==========
 function animate(){
 if(!running) return;
 
@@ -1132,13 +1535,11 @@ if(names.length === 0) { reset(); return; }
 offset += speed;
 strip.style.transform = `translateY(-${offset}px)`;
 
-// 先回绕确保 offset 在有效范围内
 if(setH > 0 && offset > setH * 14){
 offset -= setH * 14;
 strip.style.transform = `translateY(-${offset}px)`;
 }
 
-// 景深效果：越靠近中间越大越亮（用名字视觉中心算距离）
 const centerIdx = (offset + centerOffset - itemH / 2) / itemH;
 const firstV = Math.max(0, Math.floor(offset / itemH));
 const lastV = Math.min(rollItems.length - 1, Math.ceil((offset + viewportH) / itemH));
@@ -1153,12 +1554,11 @@ item.style.opacity = o;
 }
 
 if(stopping){
-speed *= 0.975;
+speed *= decelFactor;
 if(speed <= 0.1){
 stopping = false;
 const winIdx = Math.round((offset + centerOffset - itemH / 2) / itemH) % rollItems.length;
-currentWinner = names[winIdx % names.length];
-// 自然停止，不拉动对齐，谁在框里谁中奖
+currentWinner = order[winIdx % order.length];
 const winItem = rollItems[winIdx];
 if(winItem){
 winItem.style.transform = '';
@@ -1176,14 +1576,24 @@ scrollRaf = requestAnimationFrame(animate);
 scrollRaf = requestAnimationFrame(animate);
 }
 
+// ========== 手动停止 / 自动停止 ==========
 function stopDraw(){
 
 if(!running || stopping) return;
 stopping = true;
 document.getElementById("drawBtn").disabled = true;
-document.getElementById("drawBtn").innerText="⏹ 停…";
+document.getElementById("drawBtn").innerText = seqState ? "⏳ 自动抽取中" : "⏹ 停…";
 }
 
+function autoStop(){
+if(running && !stopping){
+stopping = true;
+document.getElementById("drawBtn").disabled = true;
+document.getElementById("drawBtn").innerText = seqState ? "⏳ 自动抽取中" : "⏹ 停…";
+}
+}
+
+// ========== 抽奖结果处理 ==========
 function finishDraw(){
 
 	running = false;
@@ -1194,13 +1604,9 @@ function finishDraw(){
 	cp.classList.remove("show");
 	cp.textContent = "";
 
-	// 移除指示器和高亮条
 	const ind = document.querySelector('.roll-indicator');
 	if(ind) ind.remove();
-	const hl = document.querySelector('.roll-highlight');
-	if(hl) hl.remove();
 
-// 恢复 displayContent
 const dc = document.getElementById("displayContent");
 dc.classList.remove("roll-mode");
 dc.innerHTML = "";
@@ -1208,37 +1614,200 @@ dc.innerHTML = "";
 	document.getElementById("drawBtn").disabled = false;
 	document.getElementById("drawBtn").innerText="🎉 开始抽奖";
 
-	let winner = currentWinner;
-	if(!winner) { document.body.classList.remove("drawing"); reset(); return; }
+	let anchor = currentWinner;
+	if(!anchor) {
+showToast("抽奖异常：未找到中奖者");
+document.body.classList.remove("drawing"); reset(); return;
+}
 
-let nIndex = names.indexOf(winner);
-if(nIndex===-1){ document.body.classList.remove("drawing"); render(); return; }
+const drawCount = parseInt(document.getElementById('drawCount').value) || 1;
 
-names.splice(nIndex,1);
+let nIndex = names.indexOf(anchor);
+if(nIndex===-1){
+showToast("抽奖异常：中奖者不在名单中");
+document.body.classList.remove("drawing");
+render();
+return;
+}
+
+names.splice(nIndex, 1);
+
+if(seqState) {
+
+seqState.selected.push(anchor);
+
+refreshWinnerBoard();
+
+				if(seqState.selected.length < seqState.drawCount) {
+
+document.getElementById("drawBtn").disabled = true;
+document.getElementById("drawBtn").innerText = "⏳ 自动抽取中";
+
+const currentPrize = document.getElementById("currentPrize");
+currentPrize.textContent = `🎁 ${currentPrizeName} × ${seqState.drawCount}人（${seqState.selected.length}/${seqState.drawCount}）`;
+currentPrize.classList.add("show");
+
+stopDelayTimer = setTimeout(() => restartSequentialRoll(), 800);
+return;
+
+} else {
+
+const allWinners = seqState.selected;
+seqState = null;
+showWinnersAndCelebrate(allWinners);
+return;
+}
+}
 
 records.push({
-winner: winner,
+winners: [anchor],
 prize: currentPrizeName,
 time: new Date().toLocaleTimeString()
 });
 
-// 全屏中奖弹窗
-document.getElementById("winnerName").textContent = winner;
-document.getElementById("winnerPrize").textContent = `获 得 ${currentPrizeName}`;
-document.getElementById("winnerOverlay").classList.add("show");
-createConfetti();
+lastDraw = { winners: [anchor], prize: currentPrizeName, removedNames: [anchor], recordIndex: records.length - 1, recordCount: 1 };
+
+document.getElementById("prizeInput").value = "";
+
+showWinnerOverlay([anchor]);
 
 render();
+saveState();
+updateUndoBtn();
 }
 
+// ========== 多人模式：自动续抽下一轮 ==========
+function restartSequentialRoll() {
+
+running = true;
+stopping = false;
+currentWinner = "";
+
+const currentPrize = document.getElementById("currentPrize");
+currentPrize.textContent = `🎁 ${currentPrizeName} × ${seqState.drawCount}人（${seqState.selected.length}/${seqState.drawCount}）`;
+currentPrize.classList.add("show");
+
+document.getElementById("drawBtn").disabled = true;
+document.getElementById("drawBtn").innerText = "⏳ 自动抽取中";
+
+startSingleDraw(0.96);
+autoStopTimer = setTimeout(() => autoStop(), 1000 + Math.random() * 1500);
+}
+
+// ========== 更新左侧中奖名单面板 ==========
+function refreshWinnerBoard() {
+if(!seqState) return;
+const names = seqState.selected;
+const board = document.getElementById("winnerBoard");
+if(!names.length) { board.classList.remove("show"); return; }
+board.innerHTML = names.map((n, i) =>
+`<div class="wb-row">${i + 1}. ${n}</div>`
+).join('');
+board.classList.add("show");
+board.scrollTop = board.scrollHeight;
+}
+
+// ========== 多人抽取完毕：汇总展示 + 弹窗 ==========
+function showWinnersAndCelebrate(winners) {
+
+document.getElementById("winnerBoard").classList.remove("show");
+document.getElementById("winnerBoard").innerHTML = "";
+
+const recordStart = records.length;
+records.push({
+winners: [...winners],
+prize: currentPrizeName,
+time: new Date().toLocaleTimeString()
+});
+
+lastDraw = { winners: [...winners], prize: currentPrizeName, removedNames: [...winners], recordIndex: recordStart, recordCount: 1 };
+
+document.getElementById("prizeInput").value = "";
+
+showWinnerOverlay(winners);
+render();
+saveState();
+updateUndoBtn();
+}
+
+// ========== 中奖弹窗（自动滚动员名单） ==========
+function showWinnerOverlay(winners){
+const total = winners.length;
+const prize = document.getElementById("winnerPrizeDisplay");
+const namesEl = document.getElementById("winnerNames");
+
+const itemH = 28;
+const one = w => `<div style="text-align:center;font-weight:700;color:#ffeb3b;text-shadow:0 0 10px rgba(255,215,0,0.4);font-size:${itemH}px;line-height:${itemH + 6}px">${w}</div>`;
+const renderAll = arr => arr.map(w => one(w)).join('');
+
+if(total === 1){
+namesEl.innerHTML = `<div style="font-size:80px;font-weight:900;color:#ffeb3b;text-shadow:0 0 40px rgba(255,215,0,0.8)">${winners[0]}</div>`;
+} else {
+namesEl.innerHTML = `<div class="winner-scroll-wrap" data-count="${total}">${renderAll(winners)}${renderAll(winners)}</div>`;
+}
+prize.textContent = currentPrizeName ? `🎁 获得 ${currentPrizeName}` : '';
+
+const overlay = document.getElementById("winnerOverlay");
+overlay.classList.add("show");
+createConfetti();
+
+if(total > 1){
+requestAnimationFrame(() => {
+const wrap = namesEl.querySelector('.winner-scroll-wrap');
+if(!wrap) return;
+const halfH = wrap.offsetHeight / 2;
+const containerH = namesEl.offsetHeight;
+if(halfH <= containerH) {
+const n = parseInt(wrap.dataset.count);
+while(wrap.children.length > n) wrap.removeChild(wrap.lastChild);
+return;
+}
+const dur = Math.max(3, Math.min(20, total * 0.12));
+let pos = 0, lt = 0;
+(function raf(t){
+const now = t || performance.now();
+if(!lt) lt = now;
+const dt = (now - lt) / 1000;
+lt = now;
+pos += (halfH / dur) * dt;
+if(pos >= halfH) pos = 0;
+wrap.style.transform = `translateY(-${Math.round(pos)}px)`;
+requestAnimationFrame(raf);
+})(performance.now());
+});
+}
+}
+
+// ========== 撤销上一次抽奖 ==========
+function undoDraw(){
+if(!lastDraw || running) return;
+showConfirm(`确定要撤销上一轮抽奖吗？\n（将恢复 ${lastDraw.winners.length} 位中奖者）`, () => {
+const { removedNames, prize, recordIndex, recordCount = 1 } = lastDraw;
+names.push(...removedNames);
+records.splice(recordIndex, recordCount);
+lastDraw = null;
+document.getElementById("prizeInput").value = prize;
+document.getElementById("winnerOverlay").classList.remove("show");
+document.body.classList.remove("drawing");
+clearConfetti();
+render();
+saveState();
+updateUndoBtn();
+showToast("已撤销");
+});
+}
+
+// ========== 重置（恢复 initNames） ==========
 function reset(){
 
 if(scrollRaf) { cancelAnimationFrame(scrollRaf); scrollRaf = null; }
 if(stopDelayTimer) { clearTimeout(stopDelayTimer); stopDelayTimer = null; }
+if(autoStopTimer) { clearTimeout(autoStopTimer); autoStopTimer = null; }
 	running = false;
 	stopping = false;
 	currentWinner = "";
 	currentPrizeName = "";
+	seqState = null;
 
 	const cp = document.getElementById("currentPrize");
 	cp.classList.remove("show");
@@ -1253,11 +1822,8 @@ document.getElementById("drawBtn").innerText="🎉 开始抽奖";
 	dc.classList.remove("roll-mode");
 	dc.innerHTML = "";
 
-	// 清除箭头指示器和高亮条
 	const ind = document.querySelector('.roll-indicator');
 	if(ind) ind.remove();
-	const hl = document.querySelector('.roll-highlight');
-	if(hl) hl.remove();
 
 	document.body.classList.remove("drawing");
 
@@ -1268,39 +1834,115 @@ names = [...initNames];
 records = [];
 
 render();
+saveState();
+updateUndoBtn();
 }
 
-function mockData(){
-
-if(running) return;
-
-const mockNames = ["张三","李四","王五","赵六","陈七","周八","吴九","郑十","孙十一","钱十二"];
-for(let i = 0; i < mockNames.length; i++){
-const name = mockNames[i];
-if(!names.includes(name)){
-names.push(name);
-if(!initNames.includes(name)) initNames.push(name);
+// ========== 底部操作栏 ==========
+function updateUndoBtn(){
+const btn = document.getElementById("undoBtn");
+if(lastDraw && !running){
+btn.disabled = false;
+} else {
+btn.disabled = true;
 }
 }
 
-document.getElementById("prizeInput").value = "📱 iPhone 16 Pro";
+// ========== 下载导入模板 ==========
+function downloadTemplate(){
+  const sample = ["张三","李四","王五","赵六","陈七","周八","吴九","郑十","孙十一","钱十二"];
+  const blob = new Blob([sample.join('，')], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '名单模板.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
 
-render();
+// ========== 批量导入 ==========
+function showImport(){
+  document.getElementById("importModal").classList.add("show");
+  document.getElementById("importText").value = "";
+  setTimeout(() => document.getElementById("importText").focus(), 200);
+}
 
-  // 按钮闪烁反馈
-  const btns = document.querySelectorAll("button");
-  const btn = [...btns].find(b => b.textContent.includes("模拟"));
-  if(btn) {
-    const orig = btn.innerText;
-    btn.innerText = "✅ 已生成";
-    btn.style.transform = "scale(0.95)";
-    setTimeout(() => {
-      btn.innerText = orig;
-      btn.style.transform = "";
-    }, 1200);
+function closeImport(){
+  document.getElementById("importModal").classList.remove("show");
+}
+
+function submitImport(){
+  const text = document.getElementById("importText").value.trim();
+  if(!text){ showToast("请输入或粘贴要导入的名单"); return; }
+
+  const raw = text.split(/[\n,;，；、\s]+/).map(s => s.trim()).filter(Boolean);
+  if(raw.length === 0){ showToast("未识别到有效的姓名"); return; }
+
+  let added = 0, skipped = 0;
+  for(const name of raw){
+    if(names.includes(name)){ skipped++; continue; }
+    names.push(name);
+    if(!initNames.includes(name)) initNames.push(name);
+    added++;
   }
+
+  document.getElementById("importModal").classList.remove("show");
+  if(added > 0) showToast(`✅ 成功导入 ${added} 人${skipped > 0 ? `，${skipped} 人重复已跳过` : ''}`);
+  else showToast(`⚠️ 没有新姓名可导入${skipped > 0 ? `，${skipped} 人已存在` : ''}`);
+  render();
+  saveState();
+  updateUndoBtn();
 }
 
+function handleImportFile(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    document.getElementById("importText").value = e.target.result;
+  };
+  reader.readAsText(file, 'UTF-8');
+  event.target.value = '';
+}
+
+// ========== 重置所有（清空 localStorage） ==========
+function resetAll(){
+  showConfirm("确定要重置所有数据吗？\n（将清空名单、记录、奖品，不可恢复）", () => {
+    localStorage.removeItem(STORAGE_KEY);
+    if(scrollRaf) { cancelAnimationFrame(scrollRaf); scrollRaf = null; }
+    if(stopDelayTimer) { clearTimeout(stopDelayTimer); stopDelayTimer = null; }
+    if(autoStopTimer) { clearTimeout(autoStopTimer); autoStopTimer = null; }
+    running = false;
+    stopping = false;
+    names = [];
+    initNames = [];
+    records = [];
+    currentWinner = "";
+    currentPrizeName = "";
+    lastDraw = null;
+    seqState = null;
+document.getElementById("winnerBoard").classList.remove("show");
+document.getElementById("winnerBoard").innerHTML = "";
+    document.getElementById("prizeInput").value = "";
+    const dc = document.getElementById("displayContent");
+    dc.classList.remove("roll-mode");
+    dc.innerHTML = "";
+    const ind = document.querySelector('.roll-indicator');
+    if(ind) ind.remove();
+    const cp = document.getElementById("currentPrize");
+    cp.classList.remove("show");
+    cp.textContent = "";
+    document.getElementById("winnerOverlay").classList.remove("show");
+    document.body.classList.remove("drawing");
+    clearConfetti();
+    render();
+    updateUndoBtn();
+    showToast("已重置所有数据");
+  });
+}
+
+// ========== 抽取记录 ==========
 function showRecords(){
 let modal = document.getElementById("recordModal");
 let recordList = document.getElementById("recordList");
@@ -1308,16 +1950,21 @@ let recordList = document.getElementById("recordList");
 if(records.length === 0){
 recordList.innerHTML = `<div class="empty-record">📭 暂无抽取记录</div>`;
 }else{
-recordList.innerHTML = records.map((r, i) => `
+recordList.innerHTML = records.map((r, i) => {
+const w = r.winners || [];
+const namesStr = w.length > 3
+? w.slice(0, 3).join('、') + ` 等${w.length}人`
+: w.join('、') || r.winner || '?';
+return `
 <div class="record-item">
 <div class="rank">#${i+1}</div>
 <div class="winner-info">
-<div class="winner-name">🎊 ${r.winner}</div>
+<div class="winner-name">🎊 ${namesStr}</div>
 <div class="prize-name">🎁 ${r.prize}</div>
 </div>
 <div class="time">${r.time}</div>
-</div>
-`).join("");
+</div>`;
+}).join("");
 }
 
 modal.classList.add("show");
@@ -1328,20 +1975,63 @@ let modal = document.getElementById("recordModal");
 modal.classList.remove("show");
 }
 
-window.onclick = function(event){
-let modal = document.getElementById("recordModal");
-if(event.target == modal){
-modal.classList.remove("show");
-}
-let confirm = document.getElementById("confirmDialog");
-if(event.target == confirm){
-confirmNo();
-}
+// ========== 导出记录 ==========
+function exportRecords(){
+  if(records.length === 0){ showToast("暂无记录可导出"); return; }
+  let text = "序号\t奖品\t中奖者\t时间\n";
+  records.forEach((r, i) => {
+    const namesStr = r.winners ? r.winners.join('、') : r.winner || '?';
+    text += `${i+1}\t${r.prize}\t${namesStr}\t${r.time}\n`;
+  });
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `抽奖记录_${new Date().toISOString().slice(0,10)}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  showToast("记录已导出");
 }
 
+// ========== 点击外部关闭弹窗 ==========
+window.onclick = function(event){
+let recordModal = document.getElementById("recordModal");
+if(event.target == recordModal) recordModal.classList.remove("show");
+let importModal = document.getElementById("importModal");
+if(event.target == importModal) importModal.classList.remove("show");
+let winnerOv = document.getElementById("winnerOverlay");
+if(event.target == winnerOv) closeWinner();
+let confirmEl = document.getElementById("confirmDialog");
+if(event.target == confirmEl) confirmNo();
+}
+
+// ========== 键盘快捷键 ==========
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape"){
+    const modals = ["recordModal", "importModal"];
+    for(const id of modals){
+      const el = document.getElementById(id);
+      if(el.classList.contains("show")){ el.classList.remove("show"); return; }
+    }
+    const winner = document.getElementById("winnerOverlay");
+    if(winner.classList.contains("show")){ closeWinner(); return; }
+    const confirmEl = document.getElementById("confirmDialog");
+    if(confirmEl.classList.contains("show")){ confirmNo(); }
+  }
+  if(e.key === "f" || e.key === "F"){
+    if(!document.fullscreenElement && document.documentElement.requestFullscreen){
+      document.documentElement.requestFullscreen();
+    }
+  }
+});
+
+window.addEventListener("beforeunload", saveState);
+
+loadState();
 render();
+updateUndoBtn();
 
 </script>
-
 </body>
 </html>
